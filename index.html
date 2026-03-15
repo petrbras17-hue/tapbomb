@@ -2,7 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0D0613">
 <title>TAPBOMB — CS2 Tap to Earn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -37,6 +41,9 @@
   --font-mono: 'JetBrains Mono', monospace;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --tg-viewport-height: 100vh;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -45,6 +52,15 @@ html, body {
   background: var(--bg-dark); color: var(--text-primary);
   font-family: var(--font-mono); font-size: 14px;
   user-select: none; -webkit-user-select: none;
+  /* Prevent iOS rubber-band scrolling */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* Fix iOS 100vh issue */
+  height: var(--tg-viewport-height, 100vh);
+  height: 100dvh;
+  position: fixed;
+  width: 100%;
+  top: 0; left: 0;
 }
 
 /* ═══ RETRO GRID BACKGROUND ═══ */
@@ -82,10 +98,59 @@ body::before {
 /* ═══ APP SHELL ═══ */
 .app {
   display: flex; flex-direction: column;
-  height: 100vh; height: 100dvh;
+  height: var(--tg-viewport-height, 100vh);
+  height: 100dvh;
+  width: 100%;
   max-width: 430px; margin: 0 auto;
   position: relative; overflow: hidden;
   z-index: 1;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* ═══ RESPONSIVE SCALING ═══ */
+/* Small phones (iPhone SE, etc.) */
+@media screen and (max-height: 600px) {
+  .header { padding-top: calc(var(--safe-top) + 4px); padding-bottom: 4px; }
+  .header-stats { display: none; }
+  .tap-container { width: 180px; height: 180px; }
+  .bomb-outer { width: 160px; height: 160px; }
+  .c4-image { width: 130px; height: 100px; }
+  .bomb-timer { font-size: 14px; }
+  .energy-section { max-width: 250px; }
+  .bottom-nav { padding: 4px 8px calc(var(--safe-bottom) + 4px); }
+  .nav-icon { width: 20px; height: 20px; }
+  .nav-icon svg { width: 18px; height: 18px; }
+  .nav-label { font-size: 6px; }
+  .tap-screen { padding: 8px; gap: 8px; }
+}
+
+/* Medium phones (standard) */
+@media screen and (min-height: 601px) and (max-height: 750px) {
+  .tap-container { width: 210px; height: 210px; }
+  .bomb-outer { width: 190px; height: 190px; }
+  .c4-image { width: 150px; height: 115px; }
+  .tap-screen { padding: 12px; gap: 12px; }
+}
+
+/* Large phones / tablets */
+@media screen and (min-height: 900px) {
+  .tap-container { width: 280px; height: 280px; }
+  .bomb-outer { width: 250px; height: 250px; }
+  .c4-image { width: 200px; height: 150px; }
+  .bomb-timer { font-size: 22px; }
+  .tap-screen { gap: 24px; }
+}
+
+/* Very wide screens (landscape or tablet) */
+@media screen and (min-width: 500px) {
+  .app { max-width: 430px; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+}
+
+/* iPhone notch/Dynamic Island - extra top padding */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .header { padding-top: calc(env(safe-area-inset-top) + 8px); }
+  .bottom-nav { padding-bottom: calc(env(safe-area-inset-bottom) + 6px); }
 }
 
 /* ═══ HEADER ═══ */
@@ -184,6 +249,7 @@ body::before {
   transition: opacity 0.25s ease, visibility 0.25s ease;
   overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 .screen.active { opacity: 1; visibility: visible; }
 
@@ -1413,7 +1479,35 @@ function svgEl(paths, size) {
 
 // ═══ TELEGRAM SDK ═══
 const tg = window.Telegram && window.Telegram.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Request fullscreen if available (Telegram WebApp v7.7+)
+  if (tg.requestFullscreen) {
+    try { tg.requestFullscreen(); } catch(e) {}
+  }
+  // Disable vertical swipe to close (Telegram WebApp v7.7+)
+  if (tg.disableVerticalSwipes) {
+    try { tg.disableVerticalSwipes(); } catch(e) {}
+  }
+  // Lock orientation to portrait if available
+  if (tg.lockOrientation) {
+    try { tg.lockOrientation(); } catch(e) {}
+  }
+  // Set header/background color
+  if (tg.setHeaderColor) tg.setHeaderColor('#0D0613');
+  if (tg.setBackgroundColor) tg.setBackgroundColor('#0D0613');
+  // Track viewport height changes for iOS
+  if (tg.onEvent) {
+    tg.onEvent('viewportChanged', function(e) {
+      document.documentElement.style.setProperty('--tg-viewport-height', tg.viewportStableHeight + 'px');
+    });
+    // Set initial viewport height
+    if (tg.viewportStableHeight) {
+      document.documentElement.style.setProperty('--tg-viewport-height', tg.viewportStableHeight + 'px');
+    }
+  }
+}
 function getTgUser() {
   if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) return tg.initDataUnsafe.user;
   return null;
