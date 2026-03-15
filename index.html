@@ -6,6 +6,7 @@
 <title>TAPBOMB — CS2 Tap to Earn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 /* ═══════════════════════════════════════════
    TAPBOMB — DREAMSKINS-INSPIRED DESIGN
@@ -752,6 +753,282 @@ body::before {
   color: var(--text-secondary); text-transform: uppercase;
   letter-spacing: 1px;
 }
+
+/* ═══ QUEST CLAIM BUTTON ═══ */
+.quest-claim-btn {
+  padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer;
+  font-family: var(--font-pixel); font-size: 7px; letter-spacing: 1px;
+  background: linear-gradient(135deg, var(--accent-green), #27AE60);
+  color: #fff; white-space: nowrap;
+  box-shadow: 0 0 10px rgba(46,204,113,0.3);
+  animation: claim-pulse 1s ease infinite;
+}
+.quest-claim-btn:active { transform: scale(0.9); }
+.quest-claim-btn.claimed {
+  background: var(--bg-card); color: var(--text-muted);
+  box-shadow: none; animation: none; cursor: default;
+}
+@keyframes claim-pulse {
+  0%,100% { box-shadow: 0 0 5px rgba(46,204,113,0.3); }
+  50% { box-shadow: 0 0 15px rgba(46,204,113,0.6); }
+}
+
+/* ═══ BOOST TIMER ═══ */
+.boost-timer {
+  font-family: var(--font-pixel); font-size: 7px;
+  color: var(--accent-cyan); letter-spacing: 1px;
+}
+
+/* ═══ DAILY LOGIN POPUP ═══ */
+.daily-overlay {
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(13,6,19,0.95);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; opacity: 0; visibility: hidden;
+  transition: all 0.3s ease;
+}
+.daily-overlay.active { opacity: 1; visibility: visible; }
+.daily-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 6px; max-width: 340px;
+}
+.daily-day {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 8px 4px; border-radius: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  min-width: 38px;
+}
+.daily-day.today {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(255,215,0,0.3);
+  background: rgba(255,215,0,0.1);
+}
+.daily-day.claimed-day { opacity: 0.4; }
+.daily-day-num {
+  font-family: var(--font-pixel); font-size: 6px;
+  color: var(--text-muted); text-transform: uppercase;
+}
+.daily-day-reward {
+  font-family: var(--font-pixel); font-size: 8px;
+  color: var(--accent-gold);
+}
+
+/* ═══ UPGRADE CARDS ═══ */
+.upgrade-card {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.upgrade-card:active {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 15px rgba(191,90,242,0.2);
+}
+.upgrade-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--bg-dark), var(--bg-card));
+  border: 1px solid var(--border);
+}
+.upgrade-info { flex: 1; }
+.upgrade-name {
+  font-size: 12px; font-weight: 500; color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.upgrade-desc {
+  font-size: 9px; color: var(--text-muted);
+}
+.upgrade-level {
+  font-family: var(--font-pixel); font-size: 7px;
+  color: var(--accent-cyan); margin-top: 2px;
+}
+.upgrade-buy {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.upgrade-price {
+  font-family: var(--font-pixel); font-size: 7px;
+  color: var(--accent-gold);
+}
+.upgrade-income {
+  font-size: 9px; color: var(--accent-green);
+}
+
+/* ═══ PRESTIGE BUTTON ═══ */
+.prestige-btn {
+  width: 100%; padding: 14px; border-radius: 10px; border: none; cursor: pointer;
+  font-family: var(--font-pixel); font-size: 9px; letter-spacing: 2px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000; font-weight: 700;
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+  text-transform: uppercase;
+}
+.prestige-btn:disabled {
+  background: var(--bg-card); color: var(--text-muted);
+  box-shadow: none; cursor: default;
+}
+.prestige-btn:active:not(:disabled) { transform: scale(0.95); }
+.prestige-stars {
+  font-family: var(--font-pixel); font-size: 8px;
+  color: var(--accent-gold); letter-spacing: 2px;
+}
+
+/* ═══ ACHIEVEMENT BADGE ═══ */
+.achievement-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.achievement-badge {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 8px; border-radius: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  text-align: center; opacity: 0.3;
+}
+.achievement-badge.unlocked {
+  opacity: 1; border-color: var(--accent-gold);
+  box-shadow: 0 0 8px rgba(255,215,0,0.2);
+}
+.achievement-badge .ach-icon { font-size: 20px; }
+.achievement-badge .ach-name {
+  font-family: var(--font-pixel); font-size: 5px;
+  color: var(--text-secondary); text-transform: uppercase;
+}
+
+/* ═══ ACHIEVEMENT POPUP ═══ */
+.achievement-popup {
+  position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  z-index: 3000; padding: 10px 20px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(155,89,182,0.2));
+  border: 1px solid var(--accent-gold);
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+  font-family: var(--font-pixel); font-size: 8px;
+  color: var(--accent-gold); letter-spacing: 1px;
+  animation: achievement-slide 3s ease forwards;
+}
+@keyframes achievement-slide {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+
+/* ═══ LEADERBOARD ═══ */
+.lb-list { display: flex; flex-direction: column; gap: 6px; }
+.lb-entry {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+}
+.lb-entry.lb-self {
+  border-color: var(--accent-gold);
+  background: rgba(255,215,0,0.05);
+}
+.lb-rank {
+  font-family: var(--font-pixel); font-size: 10px;
+  color: var(--text-muted); width: 24px; text-align: center;
+}
+.lb-entry:nth-child(1) .lb-rank { color: #FFD700; }
+.lb-entry:nth-child(2) .lb-rank { color: #C0C0C0; }
+.lb-entry:nth-child(3) .lb-rank { color: #CD7F32; }
+.lb-name { flex: 1; font-size: 12px; }
+.lb-score {
+  font-family: var(--font-pixel); font-size: 8px;
+  color: var(--accent-gold);
+}
+
+/* ═══ REFERRAL ═══ */
+.referral-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px; text-align: center;
+}
+.referral-btn {
+  width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+  font-family: var(--font-pixel); font-size: 8px; letter-spacing: 2px;
+  background: linear-gradient(135deg, var(--accent-green), #27AE60);
+  color: #fff; box-shadow: 0 0 15px rgba(46,204,113,0.3);
+  margin-top: 12px;
+}
+.referral-btn:active { transform: scale(0.95); }
+
+/* ═══ BATTLE PASS ═══ */
+.bp-track {
+  display: flex; gap: 0; overflow-x: auto; padding: 8px 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.bp-track::-webkit-scrollbar { display: none; }
+.bp-level {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 54px; gap: 4px; position: relative;
+}
+.bp-level::after {
+  content: ''; position: absolute; top: 18px; left: 54px;
+  width: 100%; height: 2px; background: var(--border);
+}
+.bp-level:last-child::after { display: none; }
+.bp-level.bp-unlocked::after { background: var(--accent-gold); }
+.bp-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-pixel); font-size: 8px;
+  background: var(--bg-card); border: 2px solid var(--border);
+  color: var(--text-muted); position: relative; z-index: 1;
+}
+.bp-level.bp-unlocked .bp-num {
+  border-color: var(--accent-gold); color: var(--accent-gold);
+  box-shadow: 0 0 8px rgba(255,215,0,0.3);
+}
+.bp-level.bp-current .bp-num {
+  border-color: var(--neon-purple); color: var(--neon-purple);
+  box-shadow: 0 0 12px rgba(191,90,242,0.4);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.bp-reward-text {
+  font-family: var(--font-pixel); font-size: 6px;
+  color: var(--text-muted); text-align: center;
+}
+
+/* ═══ EVENT BANNER ═══ */
+.event-banner {
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(191,90,242,0.15));
+  border: 1px solid var(--accent-gold);
+  border-radius: 10px; padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 16px;
+}
+.event-banner .event-icon { font-size: 20px; }
+.event-banner .event-text {
+  font-family: var(--font-pixel); font-size: 7px;
+  color: var(--accent-gold); letter-spacing: 1px;
+}
+
+/* ═══ COMBO GLOW EFFECTS ═══ */
+.bomb-outer.combo-10 {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 30px rgba(46,204,113,0.4), 0 0 60px rgba(46,204,113,0.15);
+}
+.bomb-outer.combo-20 {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 30px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.15);
+}
+
+/* ═══ WIRE CUT MINIGAME ═══ */
+.wire-container {
+  display: flex; gap: 20px; justify-content: center;
+}
+.wire-btn {
+  width: 60px; height: 120px; border-radius: 8px;
+  border: 2px solid; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-pixel); font-size: 8px; color: #fff;
+  transition: all 0.2s ease;
+}
+.wire-btn:active { transform: scale(0.9); }
+.wire-btn.wire-red { border-color: #E74C3C; background: rgba(231,76,60,0.2); }
+.wire-btn.wire-yellow { border-color: #F1C40F; background: rgba(241,196,15,0.2); }
+.wire-btn.wire-green { border-color: #2ECC71; background: rgba(46,204,113,0.2); }
+.wire-btn.wire-cut { opacity: 0.3; cursor: default; }
 </style>
 </head>
 <body>
@@ -998,18 +1275,16 @@ body::before {
       </div>
     </div>
 
-    <!-- WEB -->
+    <!-- LEADERBOARD (was Web) -->
     <div class="screen" id="screen-web">
-      <div class="quest-screen" style="align-items:center;justify-content:center;min-height:60vh;">
-        <div style="text-align:center;">
-          <div style="font-family:var(--font-pixel);font-size:20px;color:var(--accent-gold);margin-bottom:8px;text-shadow:0 0 20px rgba(255,215,0,0.4);">&#9733; TAPBOMB &#9733;</div>
-          <div class="bomb-label" style="margin-bottom:24px;font-size:8px;">OFFICIAL WEBSITE</div>
-          <a href="#" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,var(--accent-violet),var(--neon-purple));color:#fff;font-family:var(--font-pixel);font-weight:400;font-size:8px;letter-spacing:2px;border-radius:10px;text-decoration:none;box-shadow:0 0 20px rgba(155,89,182,0.3);border:1px solid var(--neon-purple);">VISIT TAPBOMB.IO</a>
-          <div style="margin-top:24px;display:flex;gap:16px;justify-content:center;">
-            <span style="color:var(--text-muted);font-size:10px;font-family:var(--font-pixel);">Twitter</span>
-            <span style="color:var(--text-muted);font-size:10px;font-family:var(--font-pixel);">Telegram</span>
-            <span style="color:var(--text-muted);font-size:10px;font-family:var(--font-pixel);">Discord</span>
-          </div>
+      <div class="quest-screen">
+        <div class="section-title">&#9733; Leaderboard &#9733;</div>
+        <div class="lb-list" id="lbList"></div>
+        <div class="referral-card" style="margin-top:12px;">
+          <div style="font-family:var(--font-pixel);font-size:8px;color:var(--accent-green);letter-spacing:1px;margin-bottom:6px;">INVITE FRIENDS</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">+1,000 $BOMB for you and your friend</div>
+          <div style="font-size:11px;color:var(--text-secondary);">Referrals: <span id="refCount" style="color:var(--accent-gold);">0</span> (+<span id="refBonus">0</span>% passive)</div>
+          <button class="referral-btn" id="inviteBtn">&#9733; INVITE FRIEND &#9733;</button>
         </div>
       </div>
     </div>
@@ -1026,6 +1301,15 @@ body::before {
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav" id="bottomNav"></div>
+</div>
+
+<!-- DAILY LOGIN POPUP -->
+<div class="daily-overlay" id="dailyOverlay">
+  <div style="font-family:var(--font-pixel);font-size:14px;color:var(--accent-gold);letter-spacing:2px;text-shadow:0 0 20px rgba(255,215,0,0.5);">&#9733; DAILY REWARD &#9733;</div>
+  <div style="font-family:var(--font-pixel);font-size:10px;color:var(--text-secondary);letter-spacing:1px;" id="dailyStreakText">Day 1</div>
+  <div class="daily-grid" id="dailyGrid"></div>
+  <div style="font-family:var(--font-pixel);font-size:18px;color:var(--accent-gold);text-shadow:0 0 20px rgba(255,215,0,0.5);" id="dailyRewardAmount">+100</div>
+  <button class="reward-btn" id="dailyClaimBtn">CLAIM</button>
 </div>
 
 <!-- DEFUSE MINIGAME -->
@@ -1123,6 +1407,54 @@ function svgEl(paths, size) {
   return svg;
 }
 
+// ═══ TELEGRAM SDK ═══
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+function getTgUser() {
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) return tg.initDataUnsafe.user;
+  return null;
+}
+function haptic(type) {
+  try {
+    if (tg && tg.HapticFeedback) {
+      if (type === 'tap') tg.HapticFeedback.impactOccurred('light');
+      else if (type === 'success') tg.HapticFeedback.notificationOccurred('success');
+      else if (type === 'error') tg.HapticFeedback.notificationOccurred('error');
+      else if (type === 'heavy') tg.HapticFeedback.impactOccurred('heavy');
+    } else if (navigator.vibrate) {
+      if (type === 'tap') navigator.vibrate(10);
+      else if (type === 'success') navigator.vibrate([50,30,80]);
+      else if (type === 'error') navigator.vibrate([100,50,100]);
+      else if (type === 'heavy') navigator.vibrate(50);
+    }
+  } catch(e) {}
+}
+
+// ═══ SOUND ENGINE ═══
+let audioCtx = null;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playTone(freq, dur, vol, type) {
+  if (!state.soundEnabled) return;
+  try {
+    initAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || 0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (dur || 0.1));
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + (dur || 0.1));
+  } catch(e) {}
+}
+function sfxTap() { playTone(800, 0.05, 0.1); }
+function sfxCombo(n) { playTone(400 + n * 30, 0.1, 0.15); }
+function sfxLevelUp() { playTone(600, 0.1, 0.2); setTimeout(() => playTone(900, 0.15, 0.2), 100); }
+function sfxDefuseOk() { playTone(500, 0.1, 0.2); setTimeout(() => playTone(700, 0.1, 0.2), 80); setTimeout(() => playTone(1000, 0.2, 0.25), 160); }
+function sfxDefuseFail() { playTone(300, 0.2, 0.2, 'sawtooth'); setTimeout(() => playTone(200, 0.3, 0.15, 'sawtooth'), 150); }
+function sfxAchievement() { playTone(800, 0.1, 0.15); setTimeout(() => playTone(1000, 0.1, 0.15), 100); setTimeout(() => playTone(1200, 0.2, 0.2), 200); }
+function sfxClaim() { playTone(600, 0.08, 0.12); setTimeout(() => playTone(800, 0.12, 0.15), 80); }
+
 // ═══ STATE ═══
 const state = {
   balance: 0, totalTaps: 0, energy: 1000, energyMax: 1000,
@@ -1130,6 +1462,21 @@ const state = {
   passivePerHour: 0, level: 1, skin: 'default',
   startTime: Date.now(), defuseTaps: 0, defuseActive: false,
   defuseInterval: null, tapsToDefuse: 100, tapsSinceDefuse: 0,
+  // Phase 1
+  boostExpiry: 0, defuseCount: 0, questsClaimed: {},
+  // Phase 2
+  soundEnabled: true, lastLogin: 0, loginStreak: 0,
+  // Phase 3
+  prestigeCount: 0, prestigeMultiplier: 1,
+  upgrades: { kevlar: 0, awp: 0, server: 0, esports: 0 },
+  achievements: {},
+  maxCombo: 0,
+  // Phase 4
+  referralCount: 0,
+  // Phase 5
+  bpLevel: 0, bpXp: 0, bpClaimed: {},
+  eventActive: false,
+  minigameType: 'defuse',
 };
 
 // ═══ LOAD/SAVE ═══
@@ -1138,10 +1485,18 @@ function loadState() {
     const saved = localStorage.getItem('tapbomb_state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      Object.assign(state, parsed);
+      // Preserve non-serializable
+      const keep = { comboTimer: null, defuseInterval: null, defuseActive: false };
+      Object.assign(state, parsed, keep);
+      // Fix boost expiry
+      if (state.boostExpiry && Date.now() > state.boostExpiry) {
+        state.multiplier = 1; state.boostExpiry = 0;
+      }
+      // Offline earnings
       const offlineMs = Date.now() - (parsed.lastSave || Date.now());
       const offlineHours = Math.min(offlineMs / 3600000, 4);
-      const offlineEarnings = Math.floor(state.passivePerHour * offlineHours);
+      const totalPassive = calcTotalPassive();
+      const offlineEarnings = Math.floor(totalPassive * offlineHours);
       if (offlineEarnings > 0) {
         state.balance += offlineEarnings;
         showReward(offlineEarnings, 'OFFLINE EARNINGS');
@@ -1150,6 +1505,16 @@ function loadState() {
       state.energy = Math.min(state.energy + regenAmount, state.energyMax);
     }
   } catch(e) { /* ignore corrupted state */ }
+  // Telegram user
+  const tgUser = getTgUser();
+  if (tgUser) {
+    const name = tgUser.first_name || 'Player';
+    document.getElementById('userName').textContent = name;
+    document.getElementById('profileName').textContent = name;
+    const letter = name.charAt(0).toUpperCase();
+    document.getElementById('avatarLetter').textContent = letter;
+    document.getElementById('profileAvatar').textContent = letter;
+  }
 }
 
 function saveState() {
@@ -1165,36 +1530,152 @@ function formatK(n) {
   return n.toString();
 }
 
+// ═══ UPGRADE DATA ═══
+const upgradeData = [
+  { id: 'kevlar', name: 'Kevlar Vest', icon: '\uD83D\uDEE1\uFE0F', baseIncome: 10, basePrice: 500 },
+  { id: 'awp', name: 'AWP Training', icon: '\uD83C\uDFAF', baseIncome: 50, basePrice: 5000 },
+  { id: 'server', name: 'Server Farm', icon: '\uD83D\uDDA5\uFE0F', baseIncome: 500, basePrice: 50000 },
+  { id: 'esports', name: 'Esports Team', icon: '\uD83C\uDFC6', baseIncome: 5000, basePrice: 500000 },
+];
+
+function getUpgradePrice(u, lvl) { return Math.floor(u.basePrice * Math.pow(1.5, lvl)); }
+function getUpgradeIncome(u, lvl) { return Math.floor(u.baseIncome * Math.pow(1.2, lvl)); }
+
+function calcTotalPassive() {
+  let total = state.passivePerHour;
+  upgradeData.forEach(u => {
+    const lvl = state.upgrades[u.id] || 0;
+    if (lvl > 0) {
+      for (let i = 0; i < lvl; i++) total += getUpgradeIncome(u, i);
+    }
+  });
+  const refBonus = Math.min(state.referralCount * 5, 50);
+  total = Math.floor(total * (1 + refBonus / 100));
+  total = Math.floor(total * state.prestigeMultiplier);
+  return total;
+}
+
+// ═══ ACHIEVEMENTS DATA ═══
+const achievementDefs = [
+  { id: 'tap1k', name: '1K Taps', icon: '\uD83D\uDC4A', check: () => state.totalTaps >= 1000 },
+  { id: 'tap10k', name: '10K Taps', icon: '\u2B50', check: () => state.totalTaps >= 10000 },
+  { id: 'tap100k', name: '100K Taps', icon: '\uD83D\uDD25', check: () => state.totalTaps >= 100000 },
+  { id: 'bal1k', name: '1K $BOMB', icon: '\uD83D\uDCB0', check: () => state.balance >= 1000 },
+  { id: 'bal100k', name: '100K $BOMB', icon: '\uD83D\uDCB5', check: () => state.balance >= 100000 },
+  { id: 'bal1m', name: '1M $BOMB', icon: '\uD83D\uDC8E', check: () => state.balance >= 1000000 },
+  { id: 'combo20', name: 'Combo x20', icon: '\u26A1', check: () => state.maxCombo >= 20 },
+  { id: 'combo50', name: 'Combo x50', icon: '\uD83C\uDF1F', check: () => state.maxCombo >= 50 },
+  { id: 'defuse10', name: '10 Defuses', icon: '\uD83D\uDCA3', check: () => state.defuseCount >= 10 },
+  { id: 'defuse50', name: '50 Defuses', icon: '\uD83C\uDF96\uFE0F', check: () => state.defuseCount >= 50 },
+  { id: 'prestige1', name: 'Ascend I', icon: '\u2728', check: () => state.prestigeCount >= 1 },
+  { id: 'prestige5', name: 'Ascend V', icon: '\uD83D\uDC51', check: () => state.prestigeCount >= 5 },
+];
+
+function checkAchievements() {
+  achievementDefs.forEach(a => {
+    if (!state.achievements[a.id] && a.check()) {
+      state.achievements[a.id] = Date.now();
+      showAchievementPopup(a);
+      sfxAchievement();
+      haptic('success');
+    }
+  });
+}
+
+function showAchievementPopup(a) {
+  const popup = el('div', { class: 'achievement-popup', textContent: a.icon + ' ' + a.name + ' UNLOCKED!' });
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 3000);
+}
+
+// ═══ SPECIAL EVENTS ═══
+function getActiveEvent() {
+  const day = new Date().getDay();
+  if (day === 0 || day === 6) return { name: 'WEEKEND x2', multiplier: 2, icon: '\uD83C\uDF1F' };
+  const hour = new Date().getHours();
+  const goldenHour = (new Date().getDate() * 7 + 3) % 24;
+  if (hour === goldenHour) return { name: 'GOLDEN HOUR x3', multiplier: 3, icon: '\uD83C\uDF1F' };
+  return null;
+}
+
+function getEventMultiplier() {
+  const event = getActiveEvent();
+  return event ? event.multiplier : 1;
+}
+
 // ═══ UI UPDATE ═══
 function updateUI() {
   document.getElementById('balanceDisplay').textContent = formatNumber(state.balance);
   document.getElementById('totalTaps').textContent = formatK(state.totalTaps);
-  document.getElementById('passiveIncome').textContent = formatK(state.passivePerHour);
+  const totalPassive = calcTotalPassive();
+  document.getElementById('passiveIncome').textContent = formatK(totalPassive);
   document.getElementById('energyCurrent').textContent = state.energy;
   document.getElementById('energyMax').textContent = state.energyMax;
   document.getElementById('energyFill').style.width = (state.energy / state.energyMax * 100) + '%';
-  document.getElementById('boostMultiplier').textContent = 'x' + state.multiplier;
-  document.getElementById('perTapDisplay').textContent = '+' + state.multiplier;
+  // Boost expiry check
+  if (state.boostExpiry && Date.now() > state.boostExpiry) {
+    state.multiplier = 1; state.boostExpiry = 0;
+  }
+  const effectiveMultiplier = state.multiplier * state.prestigeMultiplier * getEventMultiplier();
+  document.getElementById('boostMultiplier').textContent = 'x' + effectiveMultiplier.toFixed(effectiveMultiplier % 1 ? 1 : 0);
+  document.getElementById('perTapDisplay').textContent = '+' + Math.floor(effectiveMultiplier);
   document.getElementById('userLevel').textContent = state.level;
-  document.getElementById('tapValue').textContent = '+' + state.multiplier + ' $BOMB per tap';
+  document.getElementById('tapValue').textContent = '+' + Math.floor(effectiveMultiplier) + ' $BOMB per tap';
   document.getElementById('pTotalTaps').textContent = formatK(state.totalTaps);
   document.getElementById('pTotalEarned').textContent = formatK(state.balance);
   const hours = Math.floor((Date.now() - state.startTime) / 3600000);
   document.getElementById('pPlaytime').textContent = hours + 'h';
+  // Boost timer display
+  const boostBadge = document.getElementById('boostMultiplier');
+  if (state.boostExpiry && state.boostExpiry > Date.now()) {
+    const remaining = Math.ceil((state.boostExpiry - Date.now()) / 60000);
+    boostBadge.parentElement.title = remaining + 'min left';
+  }
+  // Prestige stars
+  if (state.prestigeCount > 0) {
+    const starStr = '\u2605'.repeat(Math.min(state.prestigeCount, 10));
+    document.getElementById('profileAvatar').setAttribute('data-stars', starStr);
+  }
+  // Referral display
+  const refEl = document.getElementById('refCount');
+  if (refEl) refEl.textContent = state.referralCount;
+  const refBonusEl = document.getElementById('refBonus');
+  if (refBonusEl) refBonusEl.textContent = Math.min(state.referralCount * 5, 50);
+  // Combo glow
+  const bomb = document.getElementById('bombElement');
+  bomb.classList.remove('combo-10', 'combo-20');
+  if (state.combo >= 20) bomb.classList.add('combo-20');
+  else if (state.combo >= 10) bomb.classList.add('combo-10');
 }
 
 // ═══ TAP HANDLER ═══
+function getEffectiveMultiplier() {
+  let m = state.multiplier * state.prestigeMultiplier * getEventMultiplier();
+  // Combo bonus
+  if (state.combo >= 20) m *= 2;
+  else if (state.combo >= 10) m *= 1.5;
+  return Math.floor(m) || 1;
+}
+
 function handleTap(e) {
   if (state.energy <= 0 || state.defuseActive) return;
   state.energy--;
-  const earned = state.multiplier;
+  const earned = getEffectiveMultiplier();
   state.balance += earned;
   state.totalTaps++;
   state.tapsSinceDefuse++;
+  // Battle pass XP
+  state.bpXp++;
+  const bpXpNeeded = 100 + state.bpLevel * 50;
+  if (state.bpXp >= bpXpNeeded && state.bpLevel < 20) {
+    state.bpLevel++; state.bpXp = 0;
+    sfxLevelUp();
+  }
 
   const now = Date.now();
   if (now - state.lastTap < 300) { state.combo++; } else { state.combo = 1; }
   state.lastTap = now;
+  if (state.combo > state.maxCombo) state.maxCombo = state.combo;
 
   clearTimeout(state.comboTimer);
   state.comboTimer = setTimeout(() => {
@@ -1204,6 +1685,7 @@ function handleTap(e) {
 
   if (state.combo >= 10) {
     document.getElementById('comboDisplay').textContent = '\u2605 COMBO x' + state.combo + ' \u2605';
+    if (state.combo % 10 === 0) sfxCombo(state.combo);
   }
 
   const newLevel = Math.floor(Math.sqrt(state.totalTaps / 100)) + 1;
@@ -1211,8 +1693,12 @@ function handleTap(e) {
     state.level = newLevel;
     document.getElementById('bombElement').classList.add('glitch');
     setTimeout(() => document.getElementById('bombElement').classList.remove('glitch'), 150);
+    sfxLevelUp();
+    haptic('heavy');
   }
 
+  sfxTap();
+  haptic('tap');
   showTapNumber(e, earned);
   const bomb = document.getElementById('bombElement');
   bomb.classList.add('shake');
@@ -1220,8 +1706,12 @@ function handleTap(e) {
 
   if (state.tapsSinceDefuse >= state.tapsToDefuse) {
     state.tapsSinceDefuse = 0;
-    startDefuse();
+    // Rotate minigames
+    state.minigameType = Math.random() > 0.5 ? 'defuse' : 'wirecut';
+    if (state.minigameType === 'wirecut') startWireCut();
+    else startDefuse();
   }
+  checkAchievements();
   updateUI();
 }
 
@@ -1267,10 +1757,15 @@ function endDefuse(success) {
   state.defuseActive = false;
   document.getElementById('defuseOverlay').classList.remove('active');
   if (success) {
-    const reward = state.multiplier * 100;
+    state.defuseCount = (state.defuseCount || 0) + 1;
+    const reward = getEffectiveMultiplier() * 100;
     state.balance += reward;
     showReward(reward, '\u2605 DEFUSED! \u2605');
+    sfxDefuseOk(); haptic('success');
+  } else {
+    sfxDefuseFail(); haptic('error');
   }
+  checkAchievements();
   updateUI(); saveState();
 }
 
@@ -1284,12 +1779,23 @@ document.getElementById('rewardBtn').addEventListener('click', () => {
   document.getElementById('rewardPopup').classList.remove('active');
 });
 
-// ═══ ENERGY REGEN ═══
+// ═══ ENERGY REGEN + PASSIVE INCOME ═══
+let passiveAccumulator = 0;
 setInterval(() => {
   if (state.energy < state.energyMax) {
     state.energy = Math.min(state.energy + 1, state.energyMax);
-    updateUI();
   }
+  // Passive income: accumulate fractional and grant whole
+  const totalPassive = calcTotalPassive();
+  if (totalPassive > 0) {
+    passiveAccumulator += totalPassive / 3600;
+    if (passiveAccumulator >= 1) {
+      const earned = Math.floor(passiveAccumulator);
+      state.balance += earned;
+      passiveAccumulator -= earned;
+    }
+  }
+  updateUI();
   saveState();
 }, 1000);
 
@@ -1298,7 +1804,7 @@ const navItems = [
   { screen: 'shop', label: 'Shop', paths: ['M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z','line:3,6,21,6','M16 10a4 4 0 0 1-8 0'] },
   { screen: 'quests', label: 'Quests', paths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'] },
   { screen: 'home', label: 'Home', paths: ['M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z'] },
-  { screen: 'web', label: 'Web', paths: ['circle:12,12,10','M2 12h20','M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'] },
+  { screen: 'web', label: 'Rank', paths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'] },
   { screen: 'profile', label: 'Profile', paths: ['circle:12,8,4','M20 21a8 8 0 1 0-16 0'] },
 ];
 
@@ -1323,18 +1829,30 @@ navItems.forEach((item, i) => {
 // ═══ BUILD QUESTS ═══
 function renderQuests() {
   const quests = [
-    { iconPaths: ['circle:12,12,10','M12 8v4l2 2'], name: 'Tap 500 times', progress: Math.min(state.totalTaps/500, 1), reward: '500' },
-    { iconPaths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'], name: 'Use all energy', progress: state.energy === 0 ? 1 : 0.5, reward: '200' },
-    { iconPaths: ['M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83'], name: 'Reach 20x combo', progress: Math.min(state.combo/20, 1), reward: '1,000' },
-    { iconPaths: ['M12 2L2 12h3v8h14v-8h3L12 2z'], name: 'Defuse 3 bombs', progress: 0.33, reward: '2,000' },
-    { iconPaths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'], name: 'Reach Level 5', progress: Math.min(state.level/5, 1), reward: '5,000' },
-    { iconPaths: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2','circle:9,7,4','M22 21v-2a4 4 0 0 0-3-3.87','M16 3.13a4 4 0 0 1 0 7.75'], name: 'Invite 3 friends', progress: 0, reward: '10,000' },
+    { id: 'tap500', iconPaths: ['circle:12,12,10','M12 8v4l2 2'], name: 'Tap 500 times', progress: Math.min(state.totalTaps/500, 1), reward: 500 },
+    { id: 'energy0', iconPaths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'], name: 'Use all energy', progress: state.energy === 0 ? 1 : (1 - state.energy/state.energyMax) * 0.9, reward: 200 },
+    { id: 'combo20', iconPaths: ['M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4'], name: 'Reach 20x combo', progress: Math.min(state.maxCombo/20, 1), reward: 1000 },
+    { id: 'defuse3', iconPaths: ['M12 2L2 12h3v8h14v-8h3L12 2z'], name: 'Defuse 3 bombs', progress: Math.min((state.defuseCount||0)/3, 1), reward: 2000 },
+    { id: 'level5', iconPaths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'], name: 'Reach Level 5', progress: Math.min(state.level/5, 1), reward: 5000 },
+    { id: 'ref3', iconPaths: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2','circle:9,7,4','M22 21v-2a4 4 0 0 0-3-3.87','M16 3.13a4 4 0 0 1 0 7.75'], name: 'Invite 3 friends', progress: Math.min(state.referralCount/3, 1), reward: 10000 },
   ];
 
   const list = document.getElementById('questList');
   list.replaceChildren();
 
   quests.forEach(q => {
+    const claimed = state.questsClaimed[q.id];
+    const complete = q.progress >= 1;
+    let actionEl;
+    if (claimed) {
+      actionEl = el('button', { class: 'quest-claim-btn claimed', textContent: 'DONE' });
+    } else if (complete) {
+      actionEl = el('button', { class: 'quest-claim-btn', textContent: 'CLAIM',
+        onclick: (e) => { e.stopPropagation(); claimQuest(q.id, q.reward); }
+      });
+    } else {
+      actionEl = el('div', { class: 'quest-reward', textContent: '+' + formatNumber(q.reward) });
+    }
     const card = el('div', { class: 'quest-card' }, [
       el('div', { class: 'quest-icon' }, [svgEl(q.iconPaths, '20')]),
       el('div', { class: 'quest-info' }, [
@@ -1343,15 +1861,24 @@ function renderQuests() {
           el('div', { class: 'quest-progress-fill', style: { width: (q.progress * 100) + '%' } })
         ])
       ]),
-      el('div', { class: 'quest-reward', textContent: '+' + q.reward })
+      actionEl
     ]);
     list.appendChild(card);
   });
 }
 
+function claimQuest(id, reward) {
+  if (state.questsClaimed[id]) return;
+  state.questsClaimed[id] = true;
+  state.balance += reward;
+  sfxClaim(); haptic('success');
+  showReward(reward, '\u2605 QUEST COMPLETE \u2605');
+  updateUI(); saveState(); renderQuests();
+}
+
 // ═══ BUILD SHOP TABS ═══
 const shopTabsContainer = document.getElementById('shopTabsContainer');
-['Boosts', 'Skins'].forEach((label, i) => {
+['Boosts', 'Skins', 'Upgrades'].forEach((label, i) => {
   const tab = el('button', {
     class: 'shop-tab' + (i === 0 ? ' active' : ''),
     textContent: label,
@@ -1371,7 +1898,7 @@ const shopData = {
     { name: 'Energy Refill', desc: 'Full energy restore', price: 500, iconPaths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'], rarity: 'common', color: 'var(--neon-purple)',
       action: () => { state.energy = state.energyMax; } },
     { name: 'x2 Boost', desc: '2x multiplier (2hr)', price: 2000, iconPaths: ['M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4'], rarity: 'rare', color: 'var(--accent-cyan)',
-      action: () => { state.multiplier = 2; } },
+      action: () => { state.multiplier = 2; state.boostExpiry = Date.now() + 2 * 3600000; } },
     { name: 'Auto-Tap', desc: 'Auto tap for 1 hour', price: 5000, iconPaths: ['circle:12,12,10','M12 6v6l4 2'], rarity: 'epic', color: 'var(--neon-purple)',
       action: () => { startAutoTap(); } },
     { name: 'Energy+500', desc: 'Max energy +500', price: 10000, iconPaths: ['M6 6h12v12H6z','M10 10h4v4h-4z'], rarity: 'legendary', color: 'var(--accent-gold)',
@@ -1392,14 +1919,37 @@ const shopData = {
 let currentShopTab = 'boosts';
 
 function renderShop() {
-  const items = shopData[currentShopTab];
   const grid = document.getElementById('shopGrid');
   grid.replaceChildren();
 
+  if (currentShopTab === 'upgrades') {
+    grid.style.gridTemplateColumns = '1fr';
+    upgradeData.forEach(u => {
+      const lvl = state.upgrades[u.id] || 0;
+      const price = getUpgradePrice(u, lvl);
+      const income = getUpgradeIncome(u, lvl);
+      const card = el('div', { class: 'upgrade-card', onclick: () => buyUpgrade(u.id) }, [
+        el('div', { class: 'upgrade-icon', textContent: u.icon }),
+        el('div', { class: 'upgrade-info' }, [
+          el('div', { class: 'upgrade-name', textContent: u.name }),
+          el('div', { class: 'upgrade-desc', textContent: '+' + formatNumber(income) + ' $/hr' }),
+          el('div', { class: 'upgrade-level', textContent: 'LVL ' + lvl }),
+        ]),
+        el('div', { class: 'upgrade-buy' }, [
+          el('div', { class: 'upgrade-price', textContent: '\u2605 ' + formatK(price) }),
+          el('div', { class: 'upgrade-income', textContent: '+' + formatK(income) + '/hr' }),
+        ]),
+      ]);
+      grid.appendChild(card);
+    });
+    return;
+  }
+
+  grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  const items = shopData[currentShopTab];
   items.forEach((item, i) => {
     const icon = svgEl(item.iconPaths, '36');
     icon.style.stroke = item.color;
-
     const card = el('div', {
       class: 'shop-card' + (item.rarity === 'legendary' ? ' legendary' : ''),
       onclick: () => buyItem(currentShopTab, i)
@@ -1414,6 +1964,18 @@ function renderShop() {
   });
 }
 
+function buyUpgrade(id) {
+  const u = upgradeData.find(x => x.id === id);
+  const lvl = state.upgrades[id] || 0;
+  const price = getUpgradePrice(u, lvl);
+  if (state.balance >= price) {
+    state.balance -= price;
+    state.upgrades[id] = lvl + 1;
+    sfxClaim(); haptic('success');
+    updateUI(); saveState(); renderShop();
+  }
+}
+
 function buyItem(tab, index) {
   const item = shopData[tab][index];
   if (state.balance >= item.price) {
@@ -1425,12 +1987,303 @@ function buyItem(tab, index) {
 
 function startAutoTap() {
   let count = 0;
+  const maxTaps = Math.min(3600, state.energy);
   const interval = setInterval(() => {
-    if (state.energy > 0 && count < 3600) {
-      state.energy--; state.balance += state.multiplier;
+    if (state.energy > 0 && count < maxTaps) {
+      state.energy--; state.balance += getEffectiveMultiplier();
       state.totalTaps++; count++; updateUI();
     } else { clearInterval(interval); }
   }, 1000);
+}
+
+// ═══ WIRE CUT MINIGAME ═══
+function startWireCut() {
+  state.defuseActive = true;
+  const overlay = document.getElementById('defuseOverlay');
+  overlay.classList.add('active');
+  const correctWire = ['red','yellow','green'][Math.floor(Math.random()*3)];
+  // Replace overlay content temporarily
+  const origHTML = overlay.innerHTML;
+  overlay.replaceChildren();
+  overlay.appendChild(el('div', { class: 'defuse-title', textContent: '\u2605 CUT THE WIRE! \u2605' }));
+  overlay.appendChild(el('div', { class: 'defuse-timer', textContent: '5.0' }, []));
+  overlay.appendChild(el('div', { class: 'defuse-hint', textContent: 'CHOOSE THE RIGHT WIRE' }));
+  const wireContainer = el('div', { class: 'wire-container' });
+  ['red','yellow','green'].forEach(color => {
+    const btn = el('div', {
+      class: 'wire-btn wire-' + color,
+      textContent: color === 'red' ? 'R' : color === 'yellow' ? 'Y' : 'G',
+      onclick: () => {
+        clearInterval(wcTimer);
+        if (color === correctWire) endWireCut(true);
+        else endWireCut(false);
+      }
+    });
+    wireContainer.appendChild(btn);
+  });
+  overlay.appendChild(wireContainer);
+  let timeLeft = 5.0;
+  const timerEl = overlay.querySelector('.defuse-timer');
+  const wcTimer = setInterval(() => {
+    timeLeft -= 0.1;
+    timerEl.textContent = timeLeft.toFixed(1);
+    if (timeLeft <= 0) { clearInterval(wcTimer); endWireCut(false); }
+  }, 100);
+
+  function endWireCut(success) {
+    state.defuseActive = false;
+    overlay.classList.remove('active');
+    // Restore original overlay content
+    overlay.innerHTML = '';
+    const temp = document.createElement('div');
+    temp.innerHTML = '<div class="defuse-title">&#9733; DEFUSE THE BOMB! &#9733;</div><div class="defuse-timer" id="defuseTimer">5.0</div>';
+    while (temp.firstChild) overlay.appendChild(temp.firstChild);
+    // Re-add defuse bomb
+    const defBomb = el('div', { class: 'defuse-bomb', id: 'defuseBomb' });
+    overlay.appendChild(defBomb);
+    overlay.appendChild(el('div', { class: 'defuse-hint', textContent: 'TAP RAPIDLY TO DEFUSE' }));
+    const progWrap = el('div', { class: 'defuse-progress' }, [
+      el('div', { class: 'defuse-progress-fill', id: 'defuseProgress', style: { width: '0%' } })
+    ]);
+    overlay.appendChild(progWrap);
+
+    if (success) {
+      state.defuseCount = (state.defuseCount || 0) + 1;
+      const reward = getEffectiveMultiplier() * 150;
+      state.balance += reward;
+      showReward(reward, '\u2605 WIRE CUT! \u2605');
+      sfxDefuseOk(); haptic('success');
+    } else {
+      sfxDefuseFail(); haptic('error');
+    }
+    checkAchievements(); updateUI(); saveState();
+  }
+}
+
+// ═══ DAILY LOGIN ═══
+const DAILY_REWARDS = [100, 200, 300, 500, 700, 850, 1000];
+
+function checkDailyLogin() {
+  const now = Date.now();
+  const lastLogin = state.lastLogin || 0;
+  const oneDayMs = 24 * 3600 * 1000;
+  const daysSinceLogin = Math.floor((now - lastLogin) / oneDayMs);
+
+  if (daysSinceLogin >= 1) {
+    // Check if streak continues (within 48 hours) or resets
+    if (daysSinceLogin <= 2 && lastLogin > 0) {
+      state.loginStreak = Math.min((state.loginStreak || 0) + 1, 7);
+    } else if (lastLogin === 0) {
+      state.loginStreak = 1;
+    } else {
+      state.loginStreak = 1; // Reset streak
+    }
+    state.lastLogin = now;
+    showDailyPopup();
+  }
+}
+
+function showDailyPopup() {
+  const streak = state.loginStreak || 1;
+  const reward = DAILY_REWARDS[streak - 1] || DAILY_REWARDS[6];
+  document.getElementById('dailyStreakText').textContent = 'Day ' + streak + ' Streak';
+  document.getElementById('dailyRewardAmount').textContent = '+' + formatNumber(reward) + ' $BOMB';
+
+  const grid = document.getElementById('dailyGrid');
+  grid.replaceChildren();
+  for (let i = 1; i <= 7; i++) {
+    const dayEl = el('div', {
+      class: 'daily-day' + (i === streak ? ' today' : '') + (i < streak ? ' claimed-day' : '')
+    }, [
+      el('div', { class: 'daily-day-num', textContent: 'D' + i }),
+      el('div', { class: 'daily-day-reward', textContent: '+' + DAILY_REWARDS[i-1] }),
+    ]);
+    grid.appendChild(dayEl);
+  }
+  document.getElementById('dailyOverlay').classList.add('active');
+
+  document.getElementById('dailyClaimBtn').onclick = () => {
+    state.balance += reward;
+    document.getElementById('dailyOverlay').classList.remove('active');
+    sfxClaim(); haptic('success');
+    showReward(reward, '\u2605 DAILY REWARD \u2605');
+    updateUI(); saveState();
+  };
+}
+
+// ═══ PRESTIGE SYSTEM ═══
+function renderPrestige() {
+  const profileMenu = document.querySelector('.profile-menu');
+  if (!profileMenu) return;
+
+  // Remove old prestige/achievement elements
+  profileMenu.querySelectorAll('.prestige-section, .achievement-section').forEach(e => e.remove());
+
+  // Prestige section
+  const canPrestige = state.level >= 10;
+  const prestigeSection = el('div', { class: 'prestige-section' }, [
+    el('div', { style: { marginBottom: '8px' } }, [
+      el('div', { class: 'prestige-stars', textContent: state.prestigeCount > 0 ? '\u2605'.repeat(state.prestigeCount) + ' Prestige ' + state.prestigeCount : 'No prestige yet' }),
+      el('div', { style: { fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }, textContent: 'Multiplier: x' + state.prestigeMultiplier.toFixed(1) }),
+    ]),
+    el('button', {
+      class: 'prestige-btn',
+      textContent: canPrestige ? '\u2605 ASCEND (Reset for +10% bonus) \u2605' : 'Reach Level 10 to Ascend',
+      disabled: canPrestige ? undefined : 'true',
+      onclick: canPrestige ? () => doPrestige() : null
+    }),
+  ]);
+  profileMenu.insertBefore(prestigeSection, profileMenu.firstChild);
+
+  // Achievement section
+  const achSection = el('div', { class: 'achievement-section', style: { marginTop: '12px' } }, [
+    el('div', { class: 'section-title', style: { marginBottom: '8px' }, textContent: '\u2605 Achievements \u2605' }),
+    el('div', { class: 'achievement-grid' }),
+  ]);
+  const achGrid = achSection.querySelector('.achievement-grid');
+  achievementDefs.forEach(a => {
+    const unlocked = !!state.achievements[a.id];
+    achGrid.appendChild(el('div', { class: 'achievement-badge' + (unlocked ? ' unlocked' : '') }, [
+      el('div', { class: 'ach-icon', textContent: a.icon }),
+      el('div', { class: 'ach-name', textContent: a.name }),
+    ]));
+  });
+  profileMenu.appendChild(achSection);
+}
+
+function doPrestige() {
+  state.prestigeCount++;
+  state.prestigeMultiplier = Math.round((1 + state.prestigeCount * 0.1) * 10) / 10;
+  state.balance = 0;
+  state.level = 1;
+  state.totalTaps = 0;
+  state.energy = 1000;
+  state.energyMax = 1000;
+  state.upgrades = { kevlar: 0, awp: 0, server: 0, esports: 0 };
+  state.passivePerHour = 0;
+  state.skin = 'default';
+  state.questsClaimed = {};
+  sfxLevelUp(); haptic('heavy');
+  showReward(0, '\u2605 ASCENDED! x' + state.prestigeMultiplier.toFixed(1) + ' \u2605');
+  checkAchievements();
+  updateUI(); saveState(); renderPrestige(); renderQuests(); renderShop();
+}
+
+// ═══ LEADERBOARD ═══
+function generateBots() {
+  const names = ['xXSniperXx','AWP_Master','CS_Legend','BombPlanter','HeadshotKing',
+    'FlashBang99','SmokeGod','NadeKing','AK47Pro','USP_Ace','M4A1_Hero',
+    'DeagleGod','KnifeRound','ClutchKing','1TapMachine','NoScope360',
+    'WallBanger','SprayControl','EcoWarrior','RushB_Cyka'];
+  const bots = [];
+  const playerScore = state.totalTaps + state.balance;
+  for (let i = 0; i < 15; i++) {
+    const variance = 0.3 + Math.random() * 1.8;
+    bots.push({
+      name: names[i % names.length],
+      score: Math.floor(playerScore * variance) + Math.floor(Math.random() * 1000),
+      isBot: true
+    });
+  }
+  return bots;
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById('lbList');
+  if (!list) return;
+  list.replaceChildren();
+
+  const playerScore = state.totalTaps + state.balance;
+  const tgUser = getTgUser();
+  const playerName = tgUser ? tgUser.first_name : 'You';
+  const entries = generateBots();
+  entries.push({ name: playerName, score: playerScore, isBot: false });
+  entries.sort((a, b) => b.score - a.score);
+
+  entries.slice(0, 15).forEach((entry, i) => {
+    const row = el('div', { class: 'lb-entry' + (entry.isBot ? '' : ' lb-self') }, [
+      el('div', { class: 'lb-rank', textContent: '#' + (i + 1) }),
+      el('div', { class: 'lb-name', textContent: entry.name }),
+      el('div', { class: 'lb-score', textContent: formatK(entry.score) }),
+    ]);
+    list.appendChild(row);
+  });
+}
+
+// ═══ REFERRAL ═══
+document.getElementById('inviteBtn').addEventListener('click', () => {
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    const userId = tg.initDataUnsafe.user.id;
+    const link = 'https://t.me/tapbomb_bot/app?startapp=ref_' + userId;
+    if (tg.openTelegramLink) {
+      tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Join TapBomb! Tap to earn $BOMB \uD83D\uDCA3'));
+    }
+  } else {
+    // Fallback: simulate referral for testing
+    state.referralCount++;
+    state.balance += 1000;
+    sfxClaim(); haptic('success');
+    showReward(1000, '\u2605 REFERRAL BONUS \u2605');
+    updateUI(); saveState(); renderLeaderboard();
+  }
+});
+
+// ═══ BATTLE PASS ═══
+const BP_REWARDS = [
+  200, 0, 500, 0, 1000, 0, 2000, 0, 3000, 0,
+  5000, 0, 7500, 0, 10000, 0, 15000, 0, 25000, 50000
+];
+
+function renderBattlePass() {
+  // Insert battle pass into quests screen if not already there
+  const questScreen = document.querySelector('.quest-screen');
+  if (!questScreen) return;
+  questScreen.querySelectorAll('.bp-section').forEach(e => e.remove());
+
+  const bpSection = el('div', { class: 'bp-section', style: { marginTop: '12px' } }, [
+    el('div', { class: 'section-title', textContent: '\u2605 Battle Pass \u2605' }),
+    el('div', { style: { fontSize: '10px', color: 'var(--text-muted)', margin: '6px 0' },
+      textContent: 'Level ' + state.bpLevel + '/20 \u2022 XP: ' + state.bpXp + '/' + (100 + state.bpLevel * 50) }),
+  ]);
+
+  const track = el('div', { class: 'bp-track' });
+  for (let i = 1; i <= 20; i++) {
+    const unlocked = state.bpLevel >= i;
+    const current = state.bpLevel === i - 1;
+    const reward = BP_REWARDS[i - 1];
+    const lvlEl = el('div', {
+      class: 'bp-level' + (unlocked ? ' bp-unlocked' : '') + (current ? ' bp-current' : '')
+    }, [
+      el('div', { class: 'bp-num', textContent: '' + i }),
+      el('div', { class: 'bp-reward-text', textContent: reward > 0 ? '+' + formatK(reward) : '-' }),
+    ]);
+    if (unlocked && reward > 0 && !state.bpClaimed[i]) {
+      lvlEl.style.cursor = 'pointer';
+      lvlEl.addEventListener('click', () => {
+        state.bpClaimed[i] = true;
+        state.balance += reward;
+        sfxClaim(); haptic('success');
+        updateUI(); saveState(); renderBattlePass();
+      });
+    }
+    track.appendChild(lvlEl);
+  }
+  bpSection.appendChild(track);
+  questScreen.appendChild(bpSection);
+}
+
+// ═══ EVENT BANNER ═══
+function renderEventBanner() {
+  document.querySelectorAll('.event-banner').forEach(e => e.remove());
+  const event = getActiveEvent();
+  if (event) {
+    const banner = el('div', { class: 'event-banner' }, [
+      el('div', { class: 'event-icon', textContent: event.icon }),
+      el('div', { class: 'event-text', textContent: event.name + ' ACTIVE!' }),
+    ]);
+    const screens = document.querySelector('.screens');
+    screens.parentElement.insertBefore(banner, screens);
+  }
 }
 
 // ═══ QUEST TABS ═══
@@ -1451,7 +2304,14 @@ loadState();
 updateUI();
 renderQuests();
 renderShop();
+renderPrestige();
+renderLeaderboard();
+renderBattlePass();
+renderEventBanner();
+checkDailyLogin();
 setInterval(renderQuests, 5000);
+setInterval(renderLeaderboard, 30000);
+setInterval(renderEventBanner, 60000);
 </script>
 </body>
 </html>
