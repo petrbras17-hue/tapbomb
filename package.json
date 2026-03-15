@@ -1,0 +1,12 @@
+{
+  "name": "tapbomb",
+  "version": "1.0.0",
+  "description": "TAPBOMB — CS2 Tap-to-Earn Game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
