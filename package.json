@@ -8,5 +8,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@figma/rest-api-spec": "^0.36.0"
   }
 }
