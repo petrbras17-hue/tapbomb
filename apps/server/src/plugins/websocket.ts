@@ -59,7 +59,7 @@ export async function registerWebSocket(app: FastifyInstance) {
       }
     };
 
-    socket.on('message', async (data) => {
+    socket.on('message', async (data: Buffer) => {
       try {
         const msg: WsClientMessage = JSON.parse(data.toString());
 
@@ -109,7 +109,7 @@ export async function registerWebSocket(app: FastifyInstance) {
       }
     });
 
-    socket.on('error', (err) => {
+    socket.on('error', (err: Error) => {
       console.error('[WS] Socket error:', err.message);
     });
 
