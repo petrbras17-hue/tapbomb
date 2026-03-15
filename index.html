@@ -2219,12 +2219,8 @@ document.getElementById('inviteBtn').addEventListener('click', () => {
       tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Join TapBomb! Tap to earn $BOMB \uD83D\uDCA3'));
     }
   } else {
-    // Fallback: simulate referral for testing
-    state.referralCount++;
-    state.balance += 1000;
-    sfxClaim(); haptic('success');
-    showReward(1000, '\u2605 REFERRAL BONUS \u2605');
-    updateUI(); saveState(); renderLeaderboard();
+    // Not in Telegram — show hint
+    console.warn('[Referral] Not available outside Telegram');
   }
 });
 
