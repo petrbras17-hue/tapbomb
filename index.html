@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TAPBOMB — CS2 Tap to Earn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TAPBOMB — DESIGN SYSTEM
+   Theme: CS2 Cyberpunk HUD
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-void: #0A0A0F;
+  --bg-card: #12121A;
+  --bg-card-hover: #1A1A28;
+  --bg-surface: #0E0E16;
+  --accent-orange: #FF6A00;
+  --accent-green: #00FF88;
+  --accent-cyan: #00D4FF;
+  --accent-red: #FF3366;
+  --accent-purple: #A855F7;
+  --accent-gold: #FFD700;
+  --text-primary: #E8E8F0;
+  --text-secondary: #7A7A8E;
+  --text-muted: #4A4A5E;
+  --border: #2A2A3A;
+  --border-glow: rgba(255,106,0,0.3);
+  --font-display: 'Orbitron', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%; overflow: hidden;
+  background: var(--bg-void); color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 14px;
+  user-select: none; -webkit-user-select: none;
+}
+
+/* ═══ SCANLINES OVERLAY ═══ */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+}
+
+/* ═══ APP SHELL ═══ */
+.app {
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
+  max-width: 430px; margin: 0 auto;
+  position: relative; overflow: hidden;
+}
+
+/* ═══ HEADER ═══ */
+.header {
+  padding: calc(var(--safe-top) + 8px) 16px 8px;
+  background: linear-gradient(180deg, rgba(18,18,26,0.98) 0%, rgba(10,10,15,0.95) 100%);
+  border-bottom: 1px solid var(--border);
+  position: relative; z-index: 10;
+  flex-shrink: 0;
+}
+.header-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.logo {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: 18px; letter-spacing: 3px;
+  color: var(--accent-orange);
+  text-shadow: 0 0 20px rgba(255,106,0,0.5), 0 0 40px rgba(255,106,0,0.2);
+}
+.logo span { color: var(--text-primary); }
+.balance-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 20px;
+}
+.balance-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-orange), #FF8C00);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #000;
+  box-shadow: 0 0 8px rgba(255,106,0,0.4);
+}
+.balance-amount {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 15px; color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.header-stats {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.user-info {
+  display: flex; align-items: center; gap: 8px;
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #000;
+}
+.user-name { font-size: 12px; color: var(--text-secondary); }
+.user-level {
+  font-size: 10px; color: var(--accent-cyan);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.stats-mini {
+  display: flex; gap: 12px;
+}
+.stat-item {
+  text-align: right;
+}
+.stat-label {
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted);
+}
+.stat-value {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══ SCREENS CONTAINER ═══ */
+.screens { flex: 1; overflow: hidden; position: relative; }
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { opacity: 1; visibility: visible; }
+
+/* ═══ HOME SCREEN — TAP AREA ═══ */
+.tap-screen {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16px; gap: 16px;
+  position: relative;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255,106,0,0.06) 0%, transparent 70%);
+}
+
+.combo-display {
+  font-family: var(--font-display); font-size: 14px;
+  color: var(--accent-gold); letter-spacing: 2px;
+  text-transform: uppercase; height: 20px;
+  text-shadow: 0 0 10px rgba(255,215,0,0.5);
+}
+
+.tap-container {
+  position: relative; cursor: pointer;
+  width: 220px; height: 220px;
+  display: flex; align-items: center; justify-content: center;
+}
+.bomb-glow {
+  position: absolute; inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,106,0,0.15) 0%, transparent 70%);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.bomb-outer {
+  width: 200px; height: 200px;
+  border-radius: 16px; position: relative;
+  background: linear-gradient(145deg, #1a1a28, #0e0e16);
+  border: 2px solid var(--accent-orange);
+  box-shadow:
+    0 0 30px rgba(255,106,0,0.3),
+    0 0 60px rgba(255,106,0,0.1),
+    inset 0 0 30px rgba(255,106,0,0.05);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.bomb-outer:active {
+  transform: scale(0.95);
+  box-shadow:
+    0 0 50px rgba(255,106,0,0.5),
+    0 0 80px rgba(255,106,0,0.2),
+    inset 0 0 40px rgba(255,106,0,0.1);
+}
+.bomb-outer.shake {
+  animation: bomb-shake 0.15s ease;
+}
+@keyframes bomb-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px) rotate(-1deg); }
+  75% { transform: translateX(3px) rotate(1deg); }
+}
+
+.bomb-timer {
+  font-family: var(--font-display); font-size: 32px;
+  font-weight: 900; color: var(--accent-orange);
+  text-shadow: 0 0 20px rgba(255,106,0,0.6);
+  letter-spacing: 2px;
+}
+.bomb-label {
+  font-family: var(--font-display); font-size: 11px;
+  color: var(--text-secondary); letter-spacing: 4px;
+  text-transform: uppercase;
+}
+.bomb-sublabel {
+  font-size: 10px; color: var(--accent-green);
+  letter-spacing: 1px;
+}
+
+/* Floating +numbers */
+.tap-number {
+  position: absolute; pointer-events: none;
+  font-family: var(--font-display); font-weight: 900;
+  font-size: 24px; color: var(--accent-orange);
+  text-shadow: 0 0 10px rgba(255,106,0,0.8);
+  animation: float-up 0.8s ease-out forwards;
+  z-index: 100;
+}
+@keyframes float-up {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-80px) scale(1.5); }
+}
+
+/* ═══ ENERGY BAR ═══ */
+.energy-section {
+  width: 100%; max-width: 300px;
+}
+.energy-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.energy-label {
+  font-size: 11px; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 4px;
+}
+.energy-label svg { width: 14px; height: 14px; }
+.energy-value {
+  font-size: 13px; font-weight: 700;
+  color: var(--accent-cyan);
+  font-variant-numeric: tabular-nums;
+}
+.energy-bar {
+  width: 100%; height: 8px;
+  background: var(--bg-card); border-radius: 4px;
+  overflow: hidden; border: 1px solid var(--border);
+}
+.energy-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+  box-shadow: 0 0 10px rgba(0,212,255,0.4);
+  transition: width 0.3s ease;
+}
+
+/* ═══ BOOST DISPLAY ═══ */
+.boost-section {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; max-width: 300px;
+  justify-content: center;
+}
+.boost-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 6px 14px; border-radius: 8px;
+}
+.boost-multiplier {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 16px; color: var(--accent-green);
+  text-shadow: 0 0 8px rgba(0,255,136,0.4);
+}
+.boost-label {
+  font-size: 10px; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.per-tap {
+  font-size: 12px; color: var(--text-muted);
+}
+.per-tap span { color: var(--accent-orange); font-weight: 700; }
+
+/* ═══ QUESTS SCREEN ═══ */
+.quest-screen { padding: 16px; gap: 16px; }
+.section-title {
+  font-family: var(--font-display); font-size: 14px;
+  font-weight: 700; color: var(--text-primary);
+  letter-spacing: 2px; text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.quest-tabs {
+  display: flex; gap: 4px;
+  background: var(--bg-card); border-radius: 10px;
+  padding: 3px;
+}
+.quest-tab {
+  flex: 1; padding: 8px 4px;
+  text-align: center; border-radius: 8px;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer; transition: all 0.2s ease;
+  border: none; background: none;
+  font-family: var(--font-mono);
+}
+.quest-tab.active {
+  background: var(--accent-orange);
+  color: #000; font-weight: 700;
+}
+
+.quest-list { display: flex; flex-direction: column; gap: 8px; }
+.quest-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px;
+  transition: border-color 0.2s ease;
+}
+.quest-icon {
+  width: 40px; height: 40px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--bg-void), var(--bg-card));
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.quest-icon svg { width: 20px; height: 20px; stroke: var(--accent-orange); fill: none; stroke-width: 2; }
+.quest-info { flex: 1; }
+.quest-name {
+  font-size: 13px; font-weight: 500; color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.quest-progress-bar {
+  width: 100%; height: 4px; background: var(--bg-void);
+  border-radius: 2px; overflow: hidden;
+}
+.quest-progress-fill {
+  height: 100%; background: var(--accent-green);
+  border-radius: 2px; transition: width 0.3s ease;
+}
+.quest-reward {
+  font-size: 12px; font-weight: 700;
+  color: var(--accent-orange);
+  white-space: nowrap;
+}
+
+/* ═══ PROFILE SCREEN ═══ */
+.profile-screen { padding: 16px; gap: 12px; }
+.profile-header-card {
+  background: linear-gradient(135deg, var(--bg-card), #1a1428);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px;
+  text-align: center;
+}
+.profile-avatar {
+  width: 64px; height: 64px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  margin: 0 auto 12px; display: flex;
+  align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 24px;
+  font-weight: 900; color: #000;
+  box-shadow: 0 0 20px rgba(255,106,0,0.3);
+}
+.profile-name {
+  font-family: var(--font-display); font-size: 18px;
+  font-weight: 700; margin-bottom: 4px;
+}
+.profile-rank {
+  font-size: 12px; color: var(--accent-cyan);
+  text-transform: uppercase; letter-spacing: 2px;
+}
+.profile-stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-top: 16px;
+}
+.profile-stat {
+  text-align: center;
+}
+.profile-stat-value {
+  font-size: 18px; font-weight: 700;
+  color: var(--accent-orange);
+  font-variant-numeric: tabular-nums;
+}
+.profile-stat-label {
+  font-size: 9px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+.profile-menu { display: flex; flex-direction: column; gap: 6px; }
+.profile-menu-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.profile-menu-item:active {
+  border-color: var(--accent-orange);
+  background: var(--bg-card-hover);
+}
+.menu-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.menu-icon svg { width: 18px; height: 18px; stroke-width: 2; fill: none; }
+.menu-icon.lb { background: rgba(255,215,0,0.15); }
+.menu-icon.lb svg { stroke: var(--accent-gold); }
+.menu-icon.ref { background: rgba(0,255,136,0.15); }
+.menu-icon.ref svg { stroke: var(--accent-green); }
+.menu-icon.stats { background: rgba(0,212,255,0.15); }
+.menu-icon.stats svg { stroke: var(--accent-cyan); }
+.menu-icon.settings { background: rgba(168,85,247,0.15); }
+.menu-icon.settings svg { stroke: var(--accent-purple); }
+.menu-text { flex: 1; }
+.menu-title { font-size: 14px; font-weight: 500; }
+.menu-subtitle { font-size: 11px; color: var(--text-muted); }
+.menu-arrow { color: var(--text-muted); font-size: 14px; }
+
+/* ═══ SHOP SCREEN ═══ */
+.shop-screen { padding: 16px; gap: 12px; }
+.shop-tabs {
+  display: flex; gap: 4px; background: var(--bg-card);
+  border-radius: 10px; padding: 3px;
+}
+.shop-tab {
+  flex: 1; padding: 8px; text-align: center;
+  border-radius: 8px; font-size: 12px; font-weight: 500;
+  color: var(--text-secondary); cursor: pointer;
+  border: none; background: none; transition: all 0.2s ease;
+  font-family: var(--font-mono);
+}
+.shop-tab.active {
+  background: var(--accent-orange); color: #000; font-weight: 700;
+}
+
+.shop-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.shop-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s ease; position: relative;
+  overflow: hidden;
+}
+.shop-card:active {
+  border-color: var(--accent-orange);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(255,106,0,0.15);
+}
+.shop-card.legendary { border-color: var(--accent-gold); }
+.shop-card.legendary::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,215,0,0.05), transparent);
+}
+.shop-rarity {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 1px; padding: 2px 6px;
+  border-radius: 4px; font-weight: 700;
+}
+.rarity-common { background: rgba(122,122,142,0.2); color: var(--text-secondary); }
+.rarity-rare { background: rgba(0,212,255,0.2); color: var(--accent-cyan); }
+.rarity-epic { background: rgba(168,85,247,0.2); color: var(--accent-purple); }
+.rarity-legendary { background: rgba(255,215,0,0.2); color: var(--accent-gold); }
+
+.shop-item-visual {
+  width: 60px; height: 60px; margin: 8px auto;
+  border-radius: 12px; display: flex;
+  align-items: center; justify-content: center;
+}
+.shop-item-visual svg { width: 36px; height: 36px; fill: none; stroke-width: 1.5; }
+.shop-item-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 4px;
+}
+.shop-item-desc {
+  font-size: 10px; color: var(--text-muted);
+  margin-bottom: 8px; line-height: 1.4;
+}
+.shop-item-price {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(255,106,0,0.15); color: var(--accent-orange);
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700;
+}
+
+/* ═══ BOTTOM NAV ═══ */
+.bottom-nav {
+  display: flex; align-items: center;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  padding: 6px 8px calc(var(--safe-bottom) + 6px);
+  flex-shrink: 0; z-index: 10;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 2px; padding: 6px 0;
+  cursor: pointer; position: relative;
+  border: none; background: none;
+  transition: all 0.2s ease;
+  font-family: var(--font-mono);
+}
+.nav-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-icon svg {
+  width: 22px; height: 22px;
+  stroke: var(--text-muted); fill: none;
+  stroke-width: 1.5; transition: all 0.2s ease;
+}
+.nav-label {
+  font-size: 9px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+.nav-item.active .nav-icon svg {
+  stroke: var(--accent-orange);
+  filter: drop-shadow(0 0 4px rgba(255,106,0,0.5));
+}
+.nav-item.active .nav-label { color: var(--accent-orange); }
+.nav-item.active::before {
+  content: ''; position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%); width: 20px; height: 2px;
+  background: var(--accent-orange); border-radius: 1px;
+  box-shadow: 0 0 6px rgba(255,106,0,0.5);
+}
+
+/* ═══ DEFUSE MINIGAME OVERLAY ═══ */
+.defuse-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10,10,15,0.95);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px; opacity: 0; visibility: hidden;
+  transition: all 0.3s ease;
+}
+.defuse-overlay.active { opacity: 1; visibility: visible; }
+.defuse-title {
+  font-family: var(--font-display); font-size: 20px;
+  font-weight: 900; color: var(--accent-red);
+  text-shadow: 0 0 20px rgba(255,51,102,0.5);
+  letter-spacing: 3px; text-transform: uppercase;
+  animation: defuse-blink 0.5s ease infinite;
+}
+@keyframes defuse-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.defuse-timer {
+  font-family: var(--font-display); font-size: 64px;
+  font-weight: 900; color: var(--accent-orange);
+  text-shadow: 0 0 30px rgba(255,106,0,0.6);
+}
+.defuse-bomb {
+  width: 150px; height: 150px; border-radius: 16px;
+  background: linear-gradient(145deg, #1a1a28, #0e0e16);
+  border: 3px solid var(--accent-red);
+  box-shadow: 0 0 40px rgba(255,51,102,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 48px;
+  font-weight: 900; color: var(--accent-red);
+  cursor: pointer; animation: defuse-pulse 0.3s ease infinite;
+}
+@keyframes defuse-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.defuse-hint {
+  font-size: 12px; color: var(--text-secondary);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.defuse-progress {
+  width: 200px; height: 6px; background: var(--bg-card);
+  border-radius: 3px; overflow: hidden;
+}
+.defuse-progress-fill {
+  height: 100%; background: var(--accent-green);
+  border-radius: 3px; transition: width 0.1s linear;
+  box-shadow: 0 0 10px rgba(0,255,136,0.5);
+}
+
+/* ═══ REWARD POPUP ═══ */
+.reward-popup {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(10,10,15,0.9);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; opacity: 0; visibility: hidden;
+  transition: all 0.3s ease;
+}
+.reward-popup.active { opacity: 1; visibility: visible; }
+.reward-title {
+  font-family: var(--font-display); font-size: 24px;
+  font-weight: 900; color: var(--accent-green);
+  text-shadow: 0 0 20px rgba(0,255,136,0.5);
+  letter-spacing: 3px;
+}
+.reward-amount {
+  font-family: var(--font-display); font-size: 48px;
+  font-weight: 900; color: var(--accent-orange);
+  text-shadow: 0 0 30px rgba(255,106,0,0.5);
+}
+.reward-btn {
+  padding: 12px 40px; border-radius: 10px;
+  background: var(--accent-orange); color: #000;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 14px; letter-spacing: 2px;
+  border: none; cursor: pointer;
+  box-shadow: 0 0 20px rgba(255,106,0,0.3);
+}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ═══ GLITCH EFFECT ═══ */
+.glitch { animation: glitch-fx 0.15s ease; }
+@keyframes glitch-fx {
+  0% { transform: translate(0); filter: hue-rotate(0deg); }
+  20% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  60% { transform: translate(-1px, -1px); filter: hue-rotate(180deg); }
+  80% { transform: translate(1px, 2px); filter: hue-rotate(-180deg); }
+  100% { transform: translate(0); filter: hue-rotate(0deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">TAP<span>BOMB</span></div>
+      <div class="balance-badge">
+        <div class="balance-icon">$</div>
+        <div class="balance-amount" id="balanceDisplay">0</div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="user-info">
+        <div class="user-avatar" id="avatarLetter">P</div>
+        <div>
+          <div class="user-name" id="userName">Player</div>
+          <div class="user-level">LVL <span id="userLevel">1</span> — RECRUIT</div>
+        </div>
+      </div>
+      <div class="stats-mini">
+        <div class="stat-item">
+          <div class="stat-label">Taps</div>
+          <div class="stat-value" id="totalTaps">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">$/hr</div>
+          <div class="stat-value" id="passiveIncome">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screens">
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="tap-screen">
+        <div class="combo-display" id="comboDisplay"></div>
+        <div class="tap-container" id="tapContainer">
+          <div class="bomb-glow"></div>
+          <div class="bomb-outer" id="bombElement">
+            <div class="bomb-timer" id="bombTimer">C4</div>
+            <div class="bomb-label">DEFUSE IT</div>
+            <div class="bomb-sublabel" id="tapValue">+1 $BOMB per tap</div>
+          </div>
+        </div>
+        <div class="energy-section">
+          <div class="energy-header">
+            <div class="energy-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              ENERGY
+            </div>
+            <div class="energy-value"><span id="energyCurrent">1000</span> / <span id="energyMax">1000</span></div>
+          </div>
+          <div class="energy-bar">
+            <div class="energy-fill" id="energyFill" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="boost-section">
+          <div class="boost-badge">
+            <div class="boost-multiplier" id="boostMultiplier">x1</div>
+            <div class="boost-label">Boost</div>
+          </div>
+          <div class="per-tap">Per tap: <span id="perTapDisplay">+1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUESTS -->
+    <div class="screen" id="screen-quests">
+      <div class="quest-screen">
+        <div class="section-title">Missions</div>
+        <div class="quest-tabs">
+          <button class="quest-tab active">Daily</button>
+          <button class="quest-tab">Achievements</button>
+          <button class="quest-tab">Season</button>
+        </div>
+        <div class="quest-list" id="questList"></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="profile-screen">
+        <div class="profile-header-card">
+          <div class="profile-avatar" id="profileAvatar">P</div>
+          <div class="profile-name" id="profileName">Player</div>
+          <div class="profile-rank">SILVER ELITE</div>
+          <div class="profile-stats-grid">
+            <div class="profile-stat">
+              <div class="profile-stat-value" id="pTotalTaps">0</div>
+              <div class="profile-stat-label">Total Taps</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value" id="pTotalEarned">0</div>
+              <div class="profile-stat-label">$BOMB Earned</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value" id="pPlaytime">0h</div>
+              <div class="profile-stat-label">Playtime</div>
+            </div>
+          </div>
+        </div>
+        <div class="profile-menu">
+          <div class="profile-menu-item">
+            <div class="menu-icon lb">
+              <svg viewBox="0 0 24 24"><path d="M12 15l-3 3h6l-3-3z"/><path d="M5 5h14l-2 8H7L5 5z"/><path d="M12 2v3"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-title">Leaderboard</div>
+              <div class="menu-subtitle">Global ranking</div>
+            </div>
+            <div class="menu-arrow">&rsaquo;</div>
+          </div>
+          <div class="profile-menu-item">
+            <div class="menu-icon ref">
+              <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-title">Referrals</div>
+              <div class="menu-subtitle">Invite friends, earn 10%</div>
+            </div>
+            <div class="menu-arrow">&rsaquo;</div>
+          </div>
+          <div class="profile-menu-item">
+            <div class="menu-icon stats">
+              <svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-title">Statistics</div>
+              <div class="menu-subtitle">Detailed analytics</div>
+            </div>
+            <div class="menu-arrow">&rsaquo;</div>
+          </div>
+          <div class="profile-menu-item">
+            <div class="menu-icon settings">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </div>
+            <div class="menu-text">
+              <div class="menu-title">Settings</div>
+              <div class="menu-subtitle">Sound, notifications</div>
+            </div>
+            <div class="menu-arrow">&rsaquo;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEB -->
+    <div class="screen" id="screen-web">
+      <div class="quest-screen" style="align-items:center;justify-content:center;min-height:60vh;">
+        <div style="text-align:center;">
+          <div class="bomb-timer" style="font-size:48px;margin-bottom:16px;">TAPBOMB</div>
+          <div class="bomb-label" style="margin-bottom:24px;font-size:13px;">OFFICIAL WEBSITE</div>
+          <a href="#" style="display:inline-block;padding:14px 32px;background:var(--accent-orange);color:#000;font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:2px;border-radius:10px;text-decoration:none;box-shadow:0 0 20px rgba(255,106,0,0.3);">VISIT TAPBOMB.IO</a>
+          <div style="margin-top:24px;display:flex;gap:16px;justify-content:center;">
+            <span style="color:var(--text-muted);font-size:12px;">Twitter</span>
+            <span style="color:var(--text-muted);font-size:12px;">Telegram</span>
+            <span style="color:var(--text-muted);font-size:12px;">Discord</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOP -->
+    <div class="screen" id="screen-shop">
+      <div class="shop-screen">
+        <div class="section-title">Armory</div>
+        <div class="shop-tabs" id="shopTabsContainer"></div>
+        <div class="shop-grid" id="shopGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav" id="bottomNav"></div>
+</div>
+
+<!-- DEFUSE MINIGAME -->
+<div class="defuse-overlay" id="defuseOverlay">
+  <div class="defuse-title">DEFUSE THE BOMB!</div>
+  <div class="defuse-timer" id="defuseTimer">5.0</div>
+  <div class="defuse-bomb" id="defuseBomb">C4</div>
+  <div class="defuse-hint">TAP RAPIDLY TO DEFUSE</div>
+  <div class="defuse-progress">
+    <div class="defuse-progress-fill" id="defuseProgress" style="width: 0%"></div>
+  </div>
+</div>
+
+<!-- REWARD POPUP -->
+<div class="reward-popup" id="rewardPopup">
+  <div class="reward-title" id="rewardTitle">DEFUSED!</div>
+  <div class="reward-amount" id="rewardAmount">+0</div>
+  <button class="reward-btn" id="rewardBtn">COLLECT</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   TAPBOMB — GAME ENGINE
+   Safe DOM construction — no innerHTML
+   ═══════════════════════════════════════════ */
+
+// ═══ DOM HELPERS ═══
+function el(tag, attrs, children) {
+  const e = document.createElement(tag);
+  if (attrs) {
+    Object.entries(attrs).forEach(([k, v]) => {
+      if (k === 'textContent') e.textContent = v;
+      else if (k === 'style' && typeof v === 'object')
+        Object.assign(e.style, v);
+      else if (k.startsWith('on'))
+        e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v);
+    });
+  }
+  if (children) {
+    (Array.isArray(children) ? children : [children]).forEach(c => {
+      if (typeof c === 'string') e.appendChild(document.createTextNode(c));
+      else if (c) e.appendChild(c);
+    });
+  }
+  return e;
+}
+
+function svgEl(paths, size) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', size || '22');
+  svg.setAttribute('height', size || '22');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.5');
+  paths.forEach(d => {
+    let p;
+    if (d.startsWith('circle:')) {
+      p = document.createElementNS(ns, 'circle');
+      const [cx, cy, r] = d.replace('circle:', '').split(',');
+      p.setAttribute('cx', cx); p.setAttribute('cy', cy); p.setAttribute('r', r);
+    } else if (d.startsWith('line:')) {
+      p = document.createElementNS(ns, 'line');
+      const [x1, y1, x2, y2] = d.replace('line:', '').split(',');
+      p.setAttribute('x1', x1); p.setAttribute('y1', y1);
+      p.setAttribute('x2', x2); p.setAttribute('y2', y2);
+    } else {
+      p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', d);
+    }
+    svg.appendChild(p);
+  });
+  return svg;
+}
+
+// ═══ STATE ═══
+const state = {
+  balance: 0, totalTaps: 0, energy: 1000, energyMax: 1000,
+  multiplier: 1, combo: 0, comboTimer: null, lastTap: 0,
+  passivePerHour: 0, level: 1, skin: 'default',
+  startTime: Date.now(), defuseTaps: 0, defuseActive: false,
+  defuseInterval: null, tapsToDefuse: 100, tapsSinceDefuse: 0,
+};
+
+// ═══ LOAD/SAVE ═══
+function loadState() {
+  try {
+    const saved = localStorage.getItem('tapbomb_state');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(state, parsed);
+      const offlineMs = Date.now() - (parsed.lastSave || Date.now());
+      const offlineHours = Math.min(offlineMs / 3600000, 4);
+      const offlineEarnings = Math.floor(state.passivePerHour * offlineHours);
+      if (offlineEarnings > 0) {
+        state.balance += offlineEarnings;
+        showReward(offlineEarnings, 'OFFLINE EARNINGS');
+      }
+      const regenAmount = Math.floor(offlineMs / 1000);
+      state.energy = Math.min(state.energy + regenAmount, state.energyMax);
+    }
+  } catch(e) { /* ignore corrupted state */ }
+}
+
+function saveState() {
+  state.lastSave = Date.now();
+  try { localStorage.setItem('tapbomb_state', JSON.stringify(state)); } catch(e) { /* storage full */ }
+}
+
+// ═══ FORMATTERS ═══
+function formatNumber(n) { return n.toLocaleString('en-US'); }
+function formatK(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+// ═══ UI UPDATE ═══
+function updateUI() {
+  document.getElementById('balanceDisplay').textContent = formatNumber(state.balance);
+  document.getElementById('totalTaps').textContent = formatK(state.totalTaps);
+  document.getElementById('passiveIncome').textContent = formatK(state.passivePerHour);
+  document.getElementById('energyCurrent').textContent = state.energy;
+  document.getElementById('energyMax').textContent = state.energyMax;
+  document.getElementById('energyFill').style.width = (state.energy / state.energyMax * 100) + '%';
+  document.getElementById('boostMultiplier').textContent = 'x' + state.multiplier;
+  document.getElementById('perTapDisplay').textContent = '+' + state.multiplier;
+  document.getElementById('userLevel').textContent = state.level;
+  document.getElementById('tapValue').textContent = '+' + state.multiplier + ' $BOMB per tap';
+  document.getElementById('pTotalTaps').textContent = formatK(state.totalTaps);
+  document.getElementById('pTotalEarned').textContent = formatK(state.balance);
+  const hours = Math.floor((Date.now() - state.startTime) / 3600000);
+  document.getElementById('pPlaytime').textContent = hours + 'h';
+}
+
+// ═══ TAP HANDLER ═══
+function handleTap(e) {
+  if (state.energy <= 0 || state.defuseActive) return;
+  state.energy--;
+  const earned = state.multiplier;
+  state.balance += earned;
+  state.totalTaps++;
+  state.tapsSinceDefuse++;
+
+  const now = Date.now();
+  if (now - state.lastTap < 300) { state.combo++; } else { state.combo = 1; }
+  state.lastTap = now;
+
+  clearTimeout(state.comboTimer);
+  state.comboTimer = setTimeout(() => {
+    state.combo = 0;
+    document.getElementById('comboDisplay').textContent = '';
+  }, 1000);
+
+  if (state.combo >= 10) {
+    document.getElementById('comboDisplay').textContent = 'COMBO x' + state.combo + '!';
+  }
+
+  const newLevel = Math.floor(Math.sqrt(state.totalTaps / 100)) + 1;
+  if (newLevel > state.level) {
+    state.level = newLevel;
+    document.getElementById('bombElement').classList.add('glitch');
+    setTimeout(() => document.getElementById('bombElement').classList.remove('glitch'), 150);
+  }
+
+  showTapNumber(e, earned);
+  const bomb = document.getElementById('bombElement');
+  bomb.classList.add('shake');
+  setTimeout(() => bomb.classList.remove('shake'), 150);
+
+  if (state.tapsSinceDefuse >= state.tapsToDefuse) {
+    state.tapsSinceDefuse = 0;
+    startDefuse();
+  }
+  updateUI();
+}
+
+function showTapNumber(e, amount) {
+  const container = document.getElementById('tapContainer');
+  const rect = container.getBoundingClientRect();
+  const numEl = el('div', { class: 'tap-number', textContent: '+' + amount });
+  let x, y;
+  if (e.touches) { x = e.touches[0].clientX - rect.left; y = e.touches[0].clientY - rect.top; }
+  else { x = e.clientX - rect.left; y = e.clientY - rect.top; }
+  numEl.style.left = (x - 15) + 'px';
+  numEl.style.top = (y - 20) + 'px';
+  container.appendChild(numEl);
+  setTimeout(() => numEl.remove(), 800);
+}
+
+// ═══ DEFUSE MINIGAME ═══
+function startDefuse() {
+  state.defuseActive = true;
+  state.defuseTaps = 0;
+  document.getElementById('defuseOverlay').classList.add('active');
+  document.getElementById('defuseProgress').style.width = '0%';
+
+  let timeLeft = 5.0;
+  const requiredTaps = 30;
+  const timer = setInterval(() => {
+    timeLeft -= 0.1;
+    document.getElementById('defuseTimer').textContent = timeLeft.toFixed(1);
+    if (timeLeft <= 0) { clearInterval(timer); endDefuse(false); }
+  }, 100);
+  state.defuseInterval = timer;
+
+  const defuseBomb = document.getElementById('defuseBomb');
+  defuseBomb.onclick = () => {
+    state.defuseTaps++;
+    document.getElementById('defuseProgress').style.width =
+      Math.min(state.defuseTaps / requiredTaps * 100, 100) + '%';
+    if (state.defuseTaps >= requiredTaps) { clearInterval(timer); endDefuse(true); }
+  };
+}
+
+function endDefuse(success) {
+  state.defuseActive = false;
+  document.getElementById('defuseOverlay').classList.remove('active');
+  if (success) {
+    const reward = state.multiplier * 100;
+    state.balance += reward;
+    showReward(reward, 'DEFUSED!');
+  }
+  updateUI(); saveState();
+}
+
+function showReward(amount, title) {
+  document.getElementById('rewardAmount').textContent = '+' + formatNumber(amount) + ' $BOMB';
+  document.getElementById('rewardTitle').textContent = title || 'REWARD';
+  document.getElementById('rewardPopup').classList.add('active');
+}
+
+document.getElementById('rewardBtn').addEventListener('click', () => {
+  document.getElementById('rewardPopup').classList.remove('active');
+});
+
+// ═══ ENERGY REGEN ═══
+setInterval(() => {
+  if (state.energy < state.energyMax) {
+    state.energy = Math.min(state.energy + 1, state.energyMax);
+    updateUI();
+  }
+  saveState();
+}, 1000);
+
+// ═══ BUILD BOTTOM NAV ═══
+const navItems = [
+  { screen: 'home', label: 'Home', paths: ['M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z'] },
+  { screen: 'quests', label: 'Quests', paths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'] },
+  { screen: 'profile', label: 'Profile', paths: ['circle:12,8,4','M20 21a8 8 0 1 0-16 0'] },
+  { screen: 'web', label: 'Web', paths: ['circle:12,12,10','M2 12h20','M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'] },
+  { screen: 'shop', label: 'Shop', paths: ['M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z','line:3,6,21,6','M16 10a4 4 0 0 1-8 0'] },
+];
+
+const bottomNav = document.getElementById('bottomNav');
+navItems.forEach((item, i) => {
+  const btn = el('button', {
+    class: 'nav-item' + (i === 0 ? ' active' : ''),
+    'data-screen': item.screen,
+    onclick: () => {
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('screen-' + item.screen).classList.add('active');
+    }
+  }, [
+    el('div', { class: 'nav-icon' }, [svgEl(item.paths)]),
+    el('div', { class: 'nav-label', textContent: item.label })
+  ]);
+  bottomNav.appendChild(btn);
+});
+
+// ═══ BUILD QUESTS ═══
+function renderQuests() {
+  const quests = [
+    { iconPaths: ['circle:12,12,10','M12 8v4l2 2'], name: 'Tap 500 times', progress: Math.min(state.totalTaps/500, 1), reward: '500' },
+    { iconPaths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'], name: 'Use all energy', progress: state.energy === 0 ? 1 : 0.5, reward: '200' },
+    { iconPaths: ['M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83'], name: 'Reach 20x combo', progress: Math.min(state.combo/20, 1), reward: '1,000' },
+    { iconPaths: ['M12 2L2 12h3v8h14v-8h3L12 2z'], name: 'Defuse 3 bombs', progress: 0.33, reward: '2,000' },
+    { iconPaths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'], name: 'Reach Level 5', progress: Math.min(state.level/5, 1), reward: '5,000' },
+    { iconPaths: ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2','circle:9,7,4','M22 21v-2a4 4 0 0 0-3-3.87','M16 3.13a4 4 0 0 1 0 7.75'], name: 'Invite 3 friends', progress: 0, reward: '10,000' },
+  ];
+
+  const list = document.getElementById('questList');
+  list.replaceChildren();
+
+  quests.forEach(q => {
+    const card = el('div', { class: 'quest-card' }, [
+      el('div', { class: 'quest-icon' }, [svgEl(q.iconPaths, '20')]),
+      el('div', { class: 'quest-info' }, [
+        el('div', { class: 'quest-name', textContent: q.name }),
+        el('div', { class: 'quest-progress-bar' }, [
+          el('div', { class: 'quest-progress-fill', style: { width: (q.progress * 100) + '%' } })
+        ])
+      ]),
+      el('div', { class: 'quest-reward', textContent: '+' + q.reward })
+    ]);
+    list.appendChild(card);
+  });
+}
+
+// ═══ BUILD SHOP TABS ═══
+const shopTabsContainer = document.getElementById('shopTabsContainer');
+['Boosts', 'Skins'].forEach((label, i) => {
+  const tab = el('button', {
+    class: 'shop-tab' + (i === 0 ? ' active' : ''),
+    textContent: label,
+    onclick: () => {
+      shopTabsContainer.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentShopTab = label.toLowerCase();
+      renderShop();
+    }
+  });
+  shopTabsContainer.appendChild(tab);
+});
+
+// ═══ SHOP DATA ═══
+const shopData = {
+  boosts: [
+    { name: 'Energy Refill', desc: 'Full energy restore', price: 500, iconPaths: ['M13 2L3 14h9l-1 8 10-12h-9l1-8z'], rarity: 'common', color: 'var(--accent-cyan)',
+      action: () => { state.energy = state.energyMax; } },
+    { name: 'x2 Boost', desc: '2x multiplier (2hr)', price: 2000, iconPaths: ['M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4'], rarity: 'rare', color: 'var(--accent-orange)',
+      action: () => { state.multiplier = 2; } },
+    { name: 'Auto-Tap', desc: 'Auto tap for 1 hour', price: 5000, iconPaths: ['circle:12,12,10','M12 6v6l4 2'], rarity: 'epic', color: 'var(--accent-purple)',
+      action: () => { startAutoTap(); } },
+    { name: 'Energy+500', desc: 'Max energy +500', price: 10000, iconPaths: ['M6 6h12v12H6z','M10 10h4v4h-4z'], rarity: 'legendary', color: 'var(--accent-gold)',
+      action: () => { state.energyMax += 500; state.energy += 500; } },
+  ],
+  skins: [
+    { name: 'Neon C4', desc: '+5% per tap', price: 1000, iconPaths: ['M12 2L2 12h3v8h14v-8h3L12 2z'], rarity: 'rare', color: 'var(--accent-cyan)',
+      action: () => { state.skin = 'neon'; } },
+    { name: 'Gold C4', desc: '+15% tap, +50/hr', price: 10000, iconPaths: ['M12 2l2.09 6.26L21 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14l-5-4.87 6.91-1.01L12 2z'], rarity: 'epic', color: 'var(--accent-gold)',
+      action: () => { state.skin = 'gold'; state.passivePerHour += 50; } },
+    { name: 'Dragon Lore', desc: '+50% tap, +500/hr', price: 100000, iconPaths: ['M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z','M8 12l3 3 5-5'], rarity: 'legendary', color: 'var(--accent-red)',
+      action: () => { state.skin = 'dragon'; state.passivePerHour += 500; } },
+    { name: 'Karambit Bomb', desc: '+100% tap, +5K/hr', price: 1000000, iconPaths: ['M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z','M14 2v6h6'], rarity: 'legendary', color: 'var(--accent-purple)',
+      action: () => { state.skin = 'karambit'; state.passivePerHour += 5000; } },
+  ],
+};
+
+let currentShopTab = 'boosts';
+
+function renderShop() {
+  const items = shopData[currentShopTab];
+  const grid = document.getElementById('shopGrid');
+  grid.replaceChildren();
+
+  items.forEach((item, i) => {
+    const icon = svgEl(item.iconPaths, '36');
+    icon.style.stroke = item.color;
+
+    const card = el('div', {
+      class: 'shop-card' + (item.rarity === 'legendary' ? ' legendary' : ''),
+      onclick: () => buyItem(currentShopTab, i)
+    }, [
+      el('span', { class: 'shop-rarity rarity-' + item.rarity, textContent: item.rarity }),
+      el('div', { class: 'shop-item-visual' }, [icon]),
+      el('div', { class: 'shop-item-name', textContent: item.name }),
+      el('div', { class: 'shop-item-desc', textContent: item.desc }),
+      el('div', { class: 'shop-item-price', textContent: '$ ' + formatNumber(item.price) }),
+    ]);
+    grid.appendChild(card);
+  });
+}
+
+function buyItem(tab, index) {
+  const item = shopData[tab][index];
+  if (state.balance >= item.price) {
+    state.balance -= item.price;
+    item.action();
+    updateUI(); saveState(); renderShop();
+  }
+}
+
+function startAutoTap() {
+  let count = 0;
+  const interval = setInterval(() => {
+    if (state.energy > 0 && count < 3600) {
+      state.energy--; state.balance += state.multiplier;
+      state.totalTaps++; count++; updateUI();
+    } else { clearInterval(interval); }
+  }, 1000);
+}
+
+// ═══ QUEST TABS ═══
+document.querySelectorAll('.quest-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.quest-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// ═══ TAP EVENT ═══
+const tapEl = document.getElementById('bombElement');
+tapEl.addEventListener('touchstart', (e) => { e.preventDefault(); handleTap(e); }, { passive: false });
+tapEl.addEventListener('mousedown', (e) => { handleTap(e); });
+
+// ═══ INIT ═══
+loadState();
+updateUI();
+renderQuests();
+renderShop();
+setInterval(renderQuests, 5000);
+</script>
+</body>
+</html>
