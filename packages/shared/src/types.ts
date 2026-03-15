@@ -45,6 +45,11 @@ export interface WsDefuseTapMessage {
   type: 'defuse_tap';
 }
 
+export interface WsDefuseCompleteMessage {
+  type: 'defuse_complete';
+  success: boolean;
+}
+
 export interface WsDefuseResultMessage {
   type: 'defuse_result';
   success: boolean;
@@ -61,9 +66,14 @@ export interface WsStateSync {
   user: UserPublic;
 }
 
-export type WsClientMessage = WsTapMessage | WsDefuseTapMessage | WsHeartbeatMessage;
+export interface WsErrorMessage {
+  type: 'error';
+  message: string;
+}
+
+export type WsClientMessage = WsTapMessage | WsDefuseTapMessage | WsDefuseCompleteMessage | WsHeartbeatMessage;
 export type WsServerMessage = WsTapOkMessage | WsTapRejectMessage | WsDefuseStartMessage
-  | WsDefuseResultMessage | WsHeartbeatMessage | WsStateSync;
+  | WsDefuseResultMessage | WsHeartbeatMessage | WsStateSync | WsErrorMessage;
 
 // ═══ PUBLIC USER (sent to client) ═══
 export interface UserPublic {

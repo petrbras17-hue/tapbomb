@@ -87,6 +87,7 @@ bot.command('help', async (ctx) => {
 // ═══ Handle inline share ═══
 bot.on('inline_query', async (ctx) => {
   const userId = ctx.from?.id;
+  if (!userId) return ctx.answerInlineQuery([]);
   const refLink = `https://t.me/tap_bomb_bot?start=ref_${userId}`;
 
   await ctx.answerInlineQuery([{
@@ -99,6 +100,11 @@ bot.on('inline_query', async (ctx) => {
       parse_mode: 'Markdown',
     },
   }]);
+});
+
+// ═══ ERROR HANDLER ═══
+bot.catch((err) => {
+  console.error('[Bot] Unhandled error:', err.message || err);
 });
 
 // ═══ START BOT ═══

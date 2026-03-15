@@ -11,7 +11,7 @@ import { registerWebSocket } from './plugins/websocket.js';
 import { startFlushWorker } from './workers/flush.worker.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,7 +32,7 @@ async function start() {
 
   // ═══ PLUGINS ═══
   await app.register(fastifyCors, {
-    origin: true,
+    origin: config.allowedOrigins.includes('*') ? true : config.allowedOrigins,
     credentials: true,
   });
 
@@ -46,6 +46,13 @@ async function start() {
 
   await app.register(fastifyWebSocket);
 
+  // ═══ SECURITY HEADERS ═══
+  app.addHook('onSend', async (_req, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'SAMEORIGIN');
+    reply.header('Referrer-Policy', 'no-referrer');
+  });
+
   // ═══ API ROUTES ═══
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(leaderboardRoutes, { prefix: '/api' });
@@ -58,28 +65,40 @@ async function start() {
   const legacyIndex = path.resolve(__dirname, '../../../index.html');
 
   app.get('/*', async (req, reply) => {
-    // Try client dist first, then legacy index.html
-    const urlPath = req.url === '/' ? '/index.html' : req.url;
-    const filePath = path.join(clientDist, urlPath);
+    const urlPath = (req.url === '/' ? '/index.html' : req.url).split('?')[0];
+    const filePath = path.resolve(clientDist, '.' + urlPath);
 
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      return reply.type(getMimeType(urlPath)).send(fs.readFileSync(filePath));
+    // Path traversal protection
+    if (!filePath.startsWith(clientDist + path.sep) && filePath !== clientDist) {
+      return reply.status(403).send({ error: 'Forbidden' });
     }
 
-    // Fallback to legacy index.html
-    if (fs.existsSync(legacyIndex)) {
-      return reply.type('text/html').send(fs.readFileSync(legacyIndex));
+    try {
+      const stat = await fs.stat(filePath);
+      if (stat.isFile()) {
+        const content = await fs.readFile(filePath);
+        return reply.type(getMimeType(urlPath)).send(content);
+      }
+    } catch {
+      // File not found in client dist, try legacy
     }
 
-    return reply.status(404).send({ error: 'Not found' });
+    try {
+      const content = await fs.readFile(legacyIndex);
+      return reply.type('text/html').send(content);
+    } catch {
+      return reply.status(404).send({ error: 'Not found' });
+    }
   });
 
-  // ═══ CONNECT SERVICES ═══
+  // ═══ CONNECT SERVICES (fail fast in production) ═══
   try {
     await getRedis().ping();
     console.log('[Server] Redis connected');
   } catch (err) {
-    console.warn('[Server] Redis not available, running without cache');
+    console.error('[Server] Redis connection failed:', err);
+    if (process.env.NODE_ENV === 'production') process.exit(1);
+    console.warn('[Server] Continuing without Redis (dev mode)');
   }
 
   try {
@@ -87,7 +106,9 @@ async function start() {
     await pool.query('SELECT 1');
     console.log('[Server] PostgreSQL connected');
   } catch (err) {
-    console.warn('[Server] PostgreSQL not available, running in limited mode');
+    console.error('[Server] PostgreSQL connection failed:', err);
+    if (process.env.NODE_ENV === 'production') process.exit(1);
+    console.warn('[Server] Continuing without PostgreSQL (dev mode)');
   }
 
   // ═══ START WORKERS ═══

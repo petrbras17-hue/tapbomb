@@ -58,7 +58,8 @@ export function validateTelegramInitData(initData: string): ParsedInitData | nul
       hash,
       startParam: params.get('start_param') || undefined,
     };
-  } catch {
+  } catch (err) {
+    console.error('[Telegram] initData validation error:', err);
     return null;
   }
 }

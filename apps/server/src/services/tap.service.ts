@@ -105,6 +105,9 @@ export async function processTap(
   const newTotalTaps = state.totalTaps + 1;
   const newTapsSinceDefuse = state.tapsSinceDefuse + 1;
 
+  // Check defuse trigger — reset atomically in same pipeline
+  const triggerDefuse = newTapsSinceDefuse >= GAME.DEFUSE_TRIGGER_TAPS;
+
   // Batch update Redis
   const pipeline = redis.pipeline();
   pipeline.hmset(key, {
@@ -113,7 +116,7 @@ export async function processTap(
     energy: currentEnergy.toString(),
     combo: combo.toString(),
     lastTapTs: now.toString(),
-    tapsSinceDefuse: newTapsSinceDefuse.toString(),
+    tapsSinceDefuse: triggerDefuse ? '0' : newTapsSinceDefuse.toString(),
     lastEnergyTs: now.toString(),
   });
   pipeline.sadd(KEYS.dirtyUsers, userId.toString());
@@ -122,9 +125,7 @@ export async function processTap(
   pipeline.expire(KEYS.sessionTaps(userId), 3600);
   await pipeline.exec();
 
-  // Check defuse trigger
-  if (newTapsSinceDefuse >= GAME.DEFUSE_TRIGGER_TAPS) {
-    await redis.hset(key, 'tapsSinceDefuse', '0');
+  if (triggerDefuse) {
     return 'defuse';
   }
 

@@ -38,8 +38,10 @@ export async function registerWebSocket(app: FastifyInstance) {
 
     const currentUserId = userId;
 
-    // Track online
-    getRedis().sadd(KEYS.online, currentUserId.toString());
+    // Track online (with error handling)
+    getRedis().sadd(KEYS.online, currentUserId.toString()).catch(err =>
+      console.error(`[WS] Failed to track online for user ${currentUserId}:`, err)
+    );
 
     // Heartbeat
     heartbeatTimer = setInterval(() => {
@@ -67,7 +69,6 @@ export async function registerWebSocket(app: FastifyInstance) {
           case 'tap': {
             const result = await processTap(currentUserId, msg.ts);
             if (result === 'defuse') {
-              // Send tap_ok first, then defuse start
               const state = await loadUserHotState(currentUserId);
               if (state) {
                 send(socket, {
@@ -87,8 +88,19 @@ export async function registerWebSocket(app: FastifyInstance) {
           }
 
           case 'defuse_tap': {
-            // Defuse taps are counted client-side with server validation
-            // The client sends defuse_complete when done
+            // Defuse taps are counted client-side
+            break;
+          }
+
+          case 'defuse_complete': {
+            const { success } = msg;
+            const result = await processDefuseComplete(currentUserId, success);
+            send(socket, {
+              type: 'defuse_result',
+              success,
+              reward: result.reward,
+              balance: result.balance,
+            });
             break;
           }
 
@@ -99,13 +111,18 @@ export async function registerWebSocket(app: FastifyInstance) {
         }
       } catch (err) {
         console.error('[WS] Message error:', err);
+        try {
+          socket.send(JSON.stringify({ type: 'error', message: 'Server error' }));
+        } catch { /* socket may be closed */ }
       }
     });
 
-    socket.on('close', async () => {
+    socket.on('close', () => {
       if (heartbeatTimer) clearInterval(heartbeatTimer);
       if (currentUserId) {
-        await trackSessionEnd(currentUserId);
+        trackSessionEnd(currentUserId).catch(err =>
+          console.error(`[WS] Session cleanup failed for user ${currentUserId}:`, err)
+        );
       }
     });
 
@@ -113,26 +130,31 @@ export async function registerWebSocket(app: FastifyInstance) {
       console.error('[WS] Socket error:', err.message);
     });
 
-    // Send initial state sync
+    // Send initial state sync (with error handling)
     (async () => {
-      const state = await loadUserHotState(currentUserId);
-      if (state) {
-        send(socket, {
-          type: 'state_sync',
-          user: {
-            id: currentUserId,
-            username: null,
-            firstName: 'Player',
-            balance: state.balance,
-            totalTaps: state.totalTaps,
-            energy: state.energy,
-            energyMax: state.energyMax,
-            multiplier: state.multiplier,
-            level: 1,
-            passivePerHr: 0,
-            skin: 'default',
-          },
-        });
+      try {
+        const state = await loadUserHotState(currentUserId);
+        if (state) {
+          send(socket, {
+            type: 'state_sync',
+            user: {
+              id: currentUserId,
+              username: null,
+              firstName: 'Player',
+              balance: state.balance,
+              totalTaps: state.totalTaps,
+              energy: state.energy,
+              energyMax: state.energyMax,
+              multiplier: state.multiplier,
+              level: 1,
+              passivePerHr: 0,
+              skin: 'default',
+            },
+          });
+        }
+      } catch (err) {
+        console.error(`[WS] Failed to load initial state for user ${currentUserId}:`, err);
+        socket.close(4003, 'Failed to load game state');
       }
     })();
   });
