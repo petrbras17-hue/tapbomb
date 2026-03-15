@@ -14,8 +14,9 @@
     "dev:client": "npm run dev --workspace=apps/client",
     "dev:bot": "npm run dev --workspace=bot",
     "build": "npm run build --workspaces",
-    "start": "node apps/server/dist/index.js",
+    "start": "node start.js",
     "start:bot": "node bot/dist/index.js",
+    "start:web": "node apps/server/dist/index.js",
     "db:migrate": "npm run migrate --workspace=apps/server",
     "docker:up": "docker compose -f infra/docker-compose.yml up -d",
     "docker:down": "docker compose -f infra/docker-compose.yml down"
