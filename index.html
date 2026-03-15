@@ -128,6 +128,17 @@ body::before {
   font-size: 11px; color: var(--accent-gold);
   font-variant-numeric: tabular-nums;
 }
+.header-right {
+  display: flex; align-items: center; gap: 10px;
+}
+.profile-btn {
+  cursor: pointer; transition: transform 0.15s ease;
+}
+.profile-btn:active { transform: scale(0.9); }
+.profile-btn .user-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  box-shadow: 0 0 10px rgba(191,90,242,0.3);
+}
 
 .header-stats {
   display: flex; align-items: center; justify-content: space-between;
@@ -239,7 +250,7 @@ body::before {
 
 /* C4 Image inside the tap button */
 .c4-image {
-  width: 140px; height: 100px;
+  width: 170px; height: 130px;
   object-fit: contain;
   filter: drop-shadow(0 0 15px rgba(255,106,0,0.4));
   transition: filter 0.1s ease;
@@ -754,14 +765,18 @@ body::before {
         TAP<span>BOMB</span>
         <span class="logo-star">&#9733;</span>
       </div>
-      <div class="balance-badge">
-        <div class="balance-icon">$</div>
-        <div class="balance-amount" id="balanceDisplay">0</div>
+      <div class="header-right">
+        <div class="balance-badge">
+          <div class="balance-icon">$</div>
+          <div class="balance-amount" id="balanceDisplay">0</div>
+        </div>
+        <div class="profile-btn" onclick="document.querySelector('[data-screen=profile]').click()">
+          <div class="user-avatar" id="avatarLetter">P</div>
+        </div>
       </div>
     </div>
     <div class="header-stats">
       <div class="user-info">
-        <div class="user-avatar" id="avatarLetter">P</div>
         <div>
           <div class="user-name" id="userName">Player</div>
           <div class="user-level">LVL <span id="userLevel">1</span> &#9733; RECRUIT</div>
@@ -789,39 +804,93 @@ body::before {
         <div class="tap-container" id="tapContainer">
           <div class="bomb-glow"></div>
           <div class="bomb-outer" id="bombElement">
-            <!-- CS:GO 2 C4 Bomb SVG -->
-            <svg class="c4-image" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-              <!-- C4 Body -->
-              <rect x="30" y="30" width="140" height="80" rx="6" fill="#2d2d2d" stroke="#555" stroke-width="2"/>
-              <rect x="35" y="35" width="130" height="70" rx="4" fill="#3a3a3a"/>
-              <!-- Explosive blocks -->
-              <rect x="40" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-              <rect x="80" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-              <rect x="120" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-              <rect x="40" y="70" width="35" height="25" rx="3" fill="#8B7355"/>
-              <rect x="80" y="70" width="35" height="25" rx="3" fill="#8B7355"/>
-              <!-- Timer Display -->
-              <rect x="120" y="70" width="40" height="28" rx="3" fill="#111" stroke="#E74C3C" stroke-width="1.5"/>
-              <text x="140" y="88" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#E74C3C">C4</text>
-              <!-- LED indicators -->
-              <circle cx="128" cy="75" r="2" fill="#E74C3C" opacity="0.9">
-                <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite"/>
+            <!-- CS2 C4 Bomb — realistic design -->
+            <svg class="c4-image" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+              <!-- Shadow -->
+              <ellipse cx="110" cy="172" rx="80" ry="6" fill="rgba(0,0,0,0.3)"/>
+              <!-- Main body — olive military case -->
+              <rect x="25" y="40" width="170" height="100" rx="8" fill="#3D3D2E" stroke="#555" stroke-width="1.5"/>
+              <rect x="25" y="40" width="170" height="100" rx="8" fill="url(#bombGrad)" opacity="0.7"/>
+              <defs>
+                <linearGradient id="bombGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#5A5A3E"/>
+                  <stop offset="100%" stop-color="#2A2A1E"/>
+                </linearGradient>
+              </defs>
+              <!-- Metal frame edges -->
+              <rect x="27" y="42" width="166" height="96" rx="6" fill="none" stroke="#666" stroke-width="0.5" opacity="0.5"/>
+              <!-- C4 explosive blocks (clay colored) -->
+              <rect x="32" y="48" width="42" height="28" rx="4" fill="#A89060" stroke="#8B7645" stroke-width="1"/>
+              <rect x="78" y="48" width="42" height="28" rx="4" fill="#A89060" stroke="#8B7645" stroke-width="1"/>
+              <rect x="32" y="80" width="42" height="28" rx="4" fill="#A89060" stroke="#8B7645" stroke-width="1"/>
+              <rect x="78" y="80" width="42" height="28" rx="4" fill="#A89060" stroke="#8B7645" stroke-width="1"/>
+              <!-- Block texture lines -->
+              <line x1="38" y1="55" x2="68" y2="55" stroke="#9A8050" stroke-width="0.5" opacity="0.6"/>
+              <line x1="38" y1="60" x2="68" y2="60" stroke="#9A8050" stroke-width="0.5" opacity="0.4"/>
+              <line x1="84" y1="55" x2="114" y2="55" stroke="#9A8050" stroke-width="0.5" opacity="0.6"/>
+              <line x1="84" y1="60" x2="114" y2="60" stroke="#9A8050" stroke-width="0.5" opacity="0.4"/>
+              <line x1="38" y1="87" x2="68" y2="87" stroke="#9A8050" stroke-width="0.5" opacity="0.6"/>
+              <line x1="84" y1="87" x2="114" y2="87" stroke="#9A8050" stroke-width="0.5" opacity="0.6"/>
+              <!-- Duct tape strips -->
+              <rect x="30" y="73" width="92" height="5" rx="1" fill="#888" opacity="0.35"/>
+              <rect x="45" y="100" width="60" height="4" rx="1" fill="#888" opacity="0.25"/>
+              <!-- Right panel — control module -->
+              <rect x="126" y="46" width="64" height="90" rx="5" fill="#222" stroke="#444" stroke-width="1"/>
+              <rect x="128" y="48" width="60" height="86" rx="4" fill="#1a1a1a"/>
+              <!-- Numpad -->
+              <rect x="133" y="52" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="150" y="52" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="167" y="52" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="133" y="65" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="150" y="65" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="167" y="65" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="133" y="78" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="150" y="78" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <rect x="167" y="78" width="14" height="10" rx="2" fill="#333" stroke="#555" stroke-width="0.5"/>
+              <!-- Numpad labels -->
+              <text x="140" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">1</text>
+              <text x="157" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">2</text>
+              <text x="174" y="60" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">3</text>
+              <text x="140" y="73" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">4</text>
+              <text x="157" y="73" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">5</text>
+              <text x="174" y="73" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">6</text>
+              <text x="140" y="86" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">7</text>
+              <text x="157" y="86" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">8</text>
+              <text x="174" y="86" text-anchor="middle" font-family="monospace" font-size="7" fill="#777">9</text>
+              <!-- Timer display -->
+              <rect x="132" y="93" width="52" height="20" rx="3" fill="#0a0a0a" stroke="#E74C3C" stroke-width="1"/>
+              <text x="158" y="107" text-anchor="middle" font-family="'Orbitron', monospace" font-size="12" font-weight="bold" fill="#E74C3C">
+                C4<animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+              </text>
+              <!-- LED row -->
+              <circle cx="138" cy="120" r="3" fill="#E74C3C">
+                <animate attributeName="opacity" values="0.2;1;0.2" dur="0.8s" repeatCount="indefinite"/>
               </circle>
-              <circle cx="136" cy="75" r="2" fill="#2ECC71" opacity="0.6"/>
-              <circle cx="144" cy="75" r="2" fill="#F1C40F" opacity="0.6"/>
-              <!-- Wires -->
-              <line x1="60" y1="30" x2="60" y2="20" stroke="#E74C3C" stroke-width="2"/>
-              <line x1="100" y1="30" x2="100" y2="18" stroke="#F1C40F" stroke-width="2"/>
-              <line x1="140" y1="30" x2="140" y2="22" stroke="#2ECC71" stroke-width="2"/>
-              <!-- Wire connectors -->
-              <circle cx="60" cy="18" r="3" fill="#E74C3C"/>
-              <circle cx="100" cy="16" r="3" fill="#F1C40F"/>
-              <circle cx="140" cy="20" r="3" fill="#2ECC71"/>
-              <!-- Tape strips -->
-              <rect x="38" y="55" width="40" height="4" rx="1" fill="#666" opacity="0.5"/>
-              <rect x="78" y="58" width="40" height="4" rx="1" fill="#666" opacity="0.5"/>
-              <!-- Detonator text -->
-              <text x="100" y="125" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="8" fill="#FFD700" opacity="0.8">TAP TO DEFUSE</text>
+              <circle cx="150" cy="120" r="2.5" fill="#2ECC71" opacity="0.5"/>
+              <circle cx="160" cy="120" r="2.5" fill="#F1C40F" opacity="0.4"/>
+              <circle cx="170" cy="120" r="2.5" fill="#E74C3C" opacity="0.3"/>
+              <!-- LED glow -->
+              <circle cx="138" cy="120" r="6" fill="#E74C3C" opacity="0.15">
+                <animate attributeName="opacity" values="0;0.2;0" dur="0.8s" repeatCount="indefinite"/>
+              </circle>
+              <!-- Antenna -->
+              <line x1="158" y1="46" x2="158" y2="18" stroke="#666" stroke-width="2"/>
+              <line x1="158" y1="18" x2="168" y2="10" stroke="#666" stroke-width="1.5"/>
+              <circle cx="168" cy="9" r="2" fill="#E74C3C">
+                <animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="168" cy="9" r="5" fill="#E74C3C" opacity="0.1">
+                <animate attributeName="r" values="4;8;4" dur="1.2s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="0.15;0;0.15" dur="1.2s" repeatCount="indefinite"/>
+              </circle>
+              <!-- Wires from explosive to control panel -->
+              <path d="M74 62 Q100 55 126 58" fill="none" stroke="#E74C3C" stroke-width="1.5"/>
+              <path d="M74 94 Q100 100 126 96" fill="none" stroke="#F1C40F" stroke-width="1.5"/>
+              <path d="M74 78 Q95 72 126 76" fill="none" stroke="#2ECC71" stroke-width="1.2" opacity="0.7"/>
+              <!-- Carry handle -->
+              <path d="M85 40 Q85 30 95 30 L125 30 Q135 30 135 40" fill="none" stroke="#555" stroke-width="3" stroke-linecap="round"/>
+              <!-- Label stencil -->
+              <text x="65" y="120" text-anchor="middle" font-family="'Press Start 2P', monospace" font-size="6" fill="#777" opacity="0.5">EXPLOSIVE</text>
             </svg>
             <div class="bomb-timer" id="bombTimer">C4</div>
             <div class="bomb-sublabel" id="tapValue">+1 $BOMB per tap</div>
@@ -845,24 +914,6 @@ body::before {
             <div class="boost-label">Boost</div>
           </div>
           <div class="per-tap">Per tap: <span id="perTapDisplay">+1</span></div>
-        </div>
-        <div class="game-modes">
-          <div class="game-mode-card" onclick="document.querySelector('[data-screen=shop]').click()">
-            <div class="game-mode-icon">&#127183;</div>
-            <div class="game-mode-label">Cases</div>
-          </div>
-          <div class="game-mode-card" onclick="document.querySelector('[data-screen=quests]').click()">
-            <div class="game-mode-icon">&#9876;</div>
-            <div class="game-mode-label">Missions</div>
-          </div>
-          <div class="game-mode-card" onclick="document.querySelector('[data-screen=shop]').click()">
-            <div class="game-mode-icon">&#128200;</div>
-            <div class="game-mode-label">Upgrade</div>
-          </div>
-          <div class="game-mode-card" onclick="document.querySelector('[data-screen=profile]').click()">
-            <div class="game-mode-icon">&#128100;</div>
-            <div class="game-mode-label">Profile</div>
-          </div>
         </div>
       </div>
     </div>
@@ -982,24 +1033,24 @@ body::before {
   <div class="defuse-title">&#9733; DEFUSE THE BOMB! &#9733;</div>
   <div class="defuse-timer" id="defuseTimer">5.0</div>
   <div class="defuse-bomb" id="defuseBomb">
-    <svg class="c4-defuse-img" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-      <rect x="30" y="30" width="140" height="80" rx="6" fill="#2d2d2d" stroke="#E74C3C" stroke-width="2"/>
-      <rect x="35" y="35" width="130" height="70" rx="4" fill="#3a3a3a"/>
-      <rect x="40" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-      <rect x="80" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-      <rect x="120" y="40" width="35" height="25" rx="3" fill="#8B7355"/>
-      <rect x="40" y="70" width="35" height="25" rx="3" fill="#8B7355"/>
-      <rect x="80" y="70" width="35" height="25" rx="3" fill="#8B7355"/>
-      <rect x="120" y="70" width="40" height="28" rx="3" fill="#111" stroke="#E74C3C" stroke-width="2"/>
-      <text x="140" y="88" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#E74C3C">C4</text>
-      <circle cx="128" cy="75" r="2.5" fill="#E74C3C">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="0.5s" repeatCount="indefinite"/>
+    <svg class="c4-defuse-img" viewBox="0 0 220 180" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="40" width="170" height="100" rx="8" fill="#3D3D2E" stroke="#E74C3C" stroke-width="2"/>
+      <rect x="32" y="48" width="42" height="28" rx="4" fill="#A89060"/>
+      <rect x="78" y="48" width="42" height="28" rx="4" fill="#A89060"/>
+      <rect x="32" y="80" width="42" height="28" rx="4" fill="#A89060"/>
+      <rect x="78" y="80" width="42" height="28" rx="4" fill="#A89060"/>
+      <rect x="126" y="46" width="64" height="90" rx="5" fill="#222"/>
+      <rect x="132" y="93" width="52" height="20" rx="3" fill="#0a0a0a" stroke="#E74C3C" stroke-width="1.5"/>
+      <text x="158" y="107" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold" fill="#E74C3C">C4</text>
+      <circle cx="138" cy="120" r="3" fill="#E74C3C">
+        <animate attributeName="opacity" values="0.2;1;0.2" dur="0.4s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="136" cy="75" r="2" fill="#E74C3C" opacity="0.4"/>
-      <circle cx="144" cy="75" r="2" fill="#E74C3C" opacity="0.4"/>
-      <line x1="60" y1="30" x2="60" y2="20" stroke="#E74C3C" stroke-width="2"/>
-      <line x1="100" y1="30" x2="100" y2="18" stroke="#F1C40F" stroke-width="2"/>
-      <line x1="140" y1="30" x2="140" y2="22" stroke="#E74C3C" stroke-width="2"/>
+      <line x1="158" y1="46" x2="158" y2="18" stroke="#666" stroke-width="2"/>
+      <circle cx="168" cy="9" r="2.5" fill="#E74C3C">
+        <animate attributeName="opacity" values="0.2;1;0.2" dur="0.4s" repeatCount="indefinite"/>
+      </circle>
+      <path d="M74 62 Q100 55 126 58" fill="none" stroke="#E74C3C" stroke-width="1.5"/>
+      <path d="M74 94 Q100 100 126 96" fill="none" stroke="#F1C40F" stroke-width="1.5"/>
     </svg>
   </div>
   <div class="defuse-hint">TAP RAPIDLY TO DEFUSE</div>
@@ -1244,17 +1295,17 @@ setInterval(() => {
 
 // ═══ BUILD BOTTOM NAV ═══
 const navItems = [
-  { screen: 'home', label: 'Home', paths: ['M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z'] },
-  { screen: 'quests', label: 'Quests', paths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'] },
-  { screen: 'profile', label: 'Profile', paths: ['circle:12,8,4','M20 21a8 8 0 1 0-16 0'] },
-  { screen: 'web', label: 'Web', paths: ['circle:12,12,10','M2 12h20','M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'] },
   { screen: 'shop', label: 'Shop', paths: ['M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z','line:3,6,21,6','M16 10a4 4 0 0 1-8 0'] },
+  { screen: 'quests', label: 'Quests', paths: ['M12 15l-3 3h6l-3-3z','M5 5h14l-2 8H7L5 5z','M12 2v3'] },
+  { screen: 'home', label: 'Home', paths: ['M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z'] },
+  { screen: 'web', label: 'Web', paths: ['circle:12,12,10','M2 12h20','M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'] },
+  { screen: 'profile', label: 'Profile', paths: ['circle:12,8,4','M20 21a8 8 0 1 0-16 0'] },
 ];
 
 const bottomNav = document.getElementById('bottomNav');
 navItems.forEach((item, i) => {
   const btn = el('button', {
-    class: 'nav-item' + (i === 0 ? ' active' : ''),
+    class: 'nav-item' + (item.screen === 'home' ? ' active' : ''),
     'data-screen': item.screen,
     onclick: () => {
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
