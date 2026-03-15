@@ -7,6 +7,8 @@ import { getRedis } from './plugins/redis.js';
 import { getPool } from './plugins/db.js';
 import { authRoutes } from './routes/auth.js';
 import { leaderboardRoutes } from './routes/leaderboard.js';
+import { shopRoutes } from './routes/shop.js';
+import { referralRoutes } from './routes/referral.js';
 import { registerWebSocket } from './plugins/websocket.js';
 import { startFlushWorker } from './workers/flush.worker.js';
 import path from 'node:path';
@@ -49,6 +51,8 @@ async function start() {
   // ═══ API ROUTES ═══
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(leaderboardRoutes, { prefix: '/api' });
+  await app.register(shopRoutes, { prefix: '/api' });
+  await app.register(referralRoutes, { prefix: '/api' });
 
   // ═══ WEBSOCKET ═══
   await app.register(registerWebSocket);

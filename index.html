@@ -1282,9 +1282,13 @@ body::before {
         <div class="lb-list" id="lbList"></div>
         <div class="referral-card" style="margin-top:12px;">
           <div style="font-family:var(--font-pixel);font-size:8px;color:var(--accent-green);letter-spacing:1px;margin-bottom:6px;">INVITE FRIENDS</div>
-          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">+1,000 $BOMB for you and your friend</div>
-          <div style="font-size:11px;color:var(--text-secondary);">Referrals: <span id="refCount" style="color:var(--accent-gold);">0</span> (+<span id="refBonus">0</span>% passive)</div>
-          <button class="referral-btn" id="inviteBtn">&#9733; INVITE FRIEND &#9733;</button>
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">10% commission on all referral taps</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Referrals: <span id="refCount" style="color:var(--accent-gold);">0</span> (+<span id="refBonus">0</span>% passive)</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">Total earned: <span id="refEarnings" style="color:var(--accent-gold);">0</span> $BOMB</div>
+          <div style="display:flex;gap:8px;">
+            <button class="referral-btn" id="inviteBtn" style="flex:1;">&#9733; INVITE &#9733;</button>
+            <button class="referral-btn" id="claimRefBtn" style="flex:1;background:linear-gradient(135deg,var(--accent-green),#1abc9c);">CLAIM</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1455,6 +1459,61 @@ function sfxDefuseFail() { playTone(300, 0.2, 0.2, 'sawtooth'); setTimeout(() =>
 function sfxAchievement() { playTone(800, 0.1, 0.15); setTimeout(() => playTone(1000, 0.1, 0.15), 100); setTimeout(() => playTone(1200, 0.2, 0.2), 200); }
 function sfxClaim() { playTone(600, 0.08, 0.12); setTimeout(() => playTone(800, 0.12, 0.15), 80); }
 
+// ═══ API CLIENT ═══
+const API_BASE = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1'))
+  ? window.location.origin
+  : window.location.origin; // Same origin in production
+let authToken = null;
+let serverConnected = false;
+
+async function api(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+  try {
+    const res = await fetch(API_BASE + '/api' + path, { ...options, headers });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      console.warn('[API]', path, res.status, err);
+      return { error: err.error || 'Request failed', status: res.status };
+    }
+    return await res.json();
+  } catch(e) {
+    console.warn('[API] Network error:', path, e.message);
+    return { error: 'Network error' };
+  }
+}
+
+async function authenticateWithTelegram() {
+  if (!tg || !tg.initData) {
+    console.log('[Auth] No Telegram initData, running offline');
+    return false;
+  }
+  const deviceInfo = navigator.userAgent.slice(0, 256);
+  const result = await api('/auth/telegram', {
+    method: 'POST',
+    body: JSON.stringify({ initData: tg.initData, deviceInfo }),
+  });
+  if (result.error) {
+    console.warn('[Auth] Failed:', result.error);
+    return false;
+  }
+  authToken = result.token;
+  serverConnected = true;
+  // Sync server state to local
+  if (result.user) {
+    state.balance = result.user.balance;
+    state.totalTaps = result.user.totalTaps;
+    state.energy = result.user.energy;
+    state.energyMax = result.user.energyMax;
+    state.multiplier = result.user.multiplier;
+    state.level = result.user.level;
+    state.passivePerHour = result.user.passivePerHr;
+    state.skin = result.user.skin;
+  }
+  console.log('[Auth] Authenticated, userId:', result.user?.id);
+  return true;
+}
+
 // ═══ STATE ═══
 const state = {
   balance: 0, totalTaps: 0, energy: 1000, energyMax: 1000,
@@ -1472,7 +1531,7 @@ const state = {
   achievements: {},
   maxCombo: 0,
   // Phase 4
-  referralCount: 0,
+  referralCount: 0, referralEarnings: 0,
   // Phase 5
   bpLevel: 0, bpXp: 0, bpClaimed: {},
   eventActive: false,
@@ -1485,27 +1544,27 @@ function loadState() {
     const saved = localStorage.getItem('tapbomb_state');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Preserve non-serializable
       const keep = { comboTimer: null, defuseInterval: null, defuseActive: false };
       Object.assign(state, parsed, keep);
-      // Fix boost expiry
       if (state.boostExpiry && Date.now() > state.boostExpiry) {
         state.multiplier = 1; state.boostExpiry = 0;
       }
-      // Offline earnings
-      const offlineMs = Date.now() - (parsed.lastSave || Date.now());
-      const offlineHours = Math.min(offlineMs / 3600000, 4);
-      const totalPassive = calcTotalPassive();
-      const offlineEarnings = Math.floor(totalPassive * offlineHours);
-      if (offlineEarnings > 0) {
-        state.balance += offlineEarnings;
-        showReward(offlineEarnings, 'OFFLINE EARNINGS');
+      // Offline earnings (local fallback, server handles this too)
+      if (!serverConnected) {
+        const offlineMs = Date.now() - (parsed.lastSave || Date.now());
+        const offlineHours = Math.min(offlineMs / 3600000, 4);
+        const totalPassive = calcTotalPassive();
+        const offlineEarnings = Math.floor(totalPassive * offlineHours);
+        if (offlineEarnings > 0) {
+          state.balance += offlineEarnings;
+          showReward(offlineEarnings, 'OFFLINE EARNINGS');
+        }
+        const regenAmount = Math.floor(offlineMs / 1000);
+        state.energy = Math.min(state.energy + regenAmount, state.energyMax);
       }
-      const regenAmount = Math.floor(offlineMs / 1000);
-      state.energy = Math.min(state.energy + regenAmount, state.energyMax);
     }
   } catch(e) { /* ignore corrupted state */ }
-  // Telegram user
+  // Telegram user display
   const tgUser = getTgUser();
   if (tgUser) {
     const name = tgUser.first_name || 'Player';
@@ -1520,6 +1579,17 @@ function loadState() {
 function saveState() {
   state.lastSave = Date.now();
   try { localStorage.setItem('tapbomb_state', JSON.stringify(state)); } catch(e) { /* storage full */ }
+}
+
+// Sync local state to server periodically (debounced)
+let syncTimer = null;
+function scheduleSyncToServer() {
+  if (!serverConnected) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(async () => {
+    // Server handles tap processing via WebSocket, but we sync offline-only fields
+    saveState();
+  }, 5000);
 }
 
 // ═══ FORMATTERS ═══
@@ -1641,6 +1711,8 @@ function updateUI() {
   if (refEl) refEl.textContent = state.referralCount;
   const refBonusEl = document.getElementById('refBonus');
   if (refBonusEl) refBonusEl.textContent = Math.min(state.referralCount * 5, 50);
+  const refEarningsEl = document.getElementById('refEarnings');
+  if (refEarningsEl) refEarningsEl.textContent = formatNumber(state.referralEarnings || 0);
   // Combo glow
   const bomb = document.getElementById('bombElement');
   bomb.classList.remove('combo-10', 'combo-20');
@@ -1964,25 +2036,82 @@ function renderShop() {
   });
 }
 
-function buyUpgrade(id) {
+async function buyUpgrade(id) {
   const u = upgradeData.find(x => x.id === id);
   const lvl = state.upgrades[id] || 0;
   const price = getUpgradePrice(u, lvl);
-  if (state.balance >= price) {
+  if (state.balance < price) return;
+
+  if (serverConnected) {
+    const result = await api('/shop/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ upgradeKey: id }),
+    });
+    if (result.error) {
+      console.warn('[Shop] Upgrade failed:', result.error);
+      return;
+    }
+    // Sync from server
+    if (result.user) {
+      state.balance = result.user.balance;
+      state.passivePerHour = result.user.passivePerHr;
+    }
+    state.upgrades[id] = result.newLevel || (lvl + 1);
+  } else {
     state.balance -= price;
     state.upgrades[id] = lvl + 1;
-    sfxClaim(); haptic('success');
-    updateUI(); saveState(); renderShop();
   }
+  sfxClaim(); haptic('success');
+  updateUI(); saveState(); renderShop();
 }
 
-function buyItem(tab, index) {
+async function buyItem(tab, index) {
   const item = shopData[tab][index];
-  if (state.balance >= item.price) {
+  if (state.balance < item.price) return;
+
+  if (serverConnected) {
+    // Map item to key
+    const itemKeys = {
+      boosts: ['energy_refill', 'x2_boost', 'auto_tap', 'energy_plus'],
+      skins: ['neon_c4', 'gold_c4', 'dragon_lore', 'karambit'],
+    };
+    const itemKey = itemKeys[tab]?.[index];
+    if (!itemKey) { console.warn('[Shop] Unknown item'); return; }
+
+    // Auto-tap is client-only, handle locally but deduct via API
+    if (itemKey === 'auto_tap') {
+      const result = await api('/shop/purchase', {
+        method: 'POST',
+        body: JSON.stringify({ itemKey }),
+      });
+      if (result.error) { console.warn('[Shop] Purchase failed:', result.error); return; }
+      if (result.user) {
+        state.balance = result.user.balance;
+        state.energy = result.user.energy;
+        state.energyMax = result.user.energyMax;
+      }
+      startAutoTap();
+    } else {
+      const result = await api('/shop/purchase', {
+        method: 'POST',
+        body: JSON.stringify({ itemKey }),
+      });
+      if (result.error) { console.warn('[Shop] Purchase failed:', result.error); return; }
+      if (result.user) {
+        state.balance = result.user.balance;
+        state.energy = result.user.energy;
+        state.energyMax = result.user.energyMax;
+        state.multiplier = result.user.multiplier;
+        state.passivePerHour = result.user.passivePerHr;
+        state.skin = result.user.skin;
+      }
+    }
+  } else {
     state.balance -= item.price;
     item.action();
-    updateUI(); saveState(); renderShop();
   }
+  sfxClaim(); haptic('success');
+  updateUI(); saveState(); renderShop();
 }
 
 function startAutoTap() {
@@ -2170,6 +2299,8 @@ function doPrestige() {
 }
 
 // ═══ LEADERBOARD ═══
+let cachedLeaderboard = null;
+
 function generateBots() {
   const names = ['xXSniperXx','AWP_Master','CS_Legend','BombPlanter','HeadshotKing',
     'FlashBang99','SmokeGod','NadeKing','AK47Pro','USP_Ace','M4A1_Hero',
@@ -2188,20 +2319,47 @@ function generateBots() {
   return bots;
 }
 
+async function fetchLeaderboard() {
+  if (!serverConnected) return;
+  const result = await api('/leaderboard');
+  if (result.error || !result.entries) return;
+  cachedLeaderboard = result.entries;
+  renderLeaderboard();
+}
+
 function renderLeaderboard() {
   const list = document.getElementById('lbList');
   if (!list) return;
   list.replaceChildren();
 
-  const playerScore = state.totalTaps + state.balance;
   const tgUser = getTgUser();
   const playerName = tgUser ? tgUser.first_name : 'You';
-  const entries = generateBots();
-  entries.push({ name: playerName, score: playerScore, isBot: false });
-  entries.sort((a, b) => b.score - a.score);
+  const playerScore = state.totalTaps + state.balance;
 
-  entries.slice(0, 15).forEach((entry, i) => {
-    const row = el('div', { class: 'lb-entry' + (entry.isBot ? '' : ' lb-self') }, [
+  // Use server leaderboard if available, otherwise bots
+  let entries;
+  if (cachedLeaderboard && cachedLeaderboard.length > 0) {
+    const userId = tgUser ? tgUser.id : null;
+    entries = cachedLeaderboard.map(e => ({
+      name: e.firstName || e.username || 'Player',
+      score: e.balance,
+      isBot: false,
+      isSelf: e.userId === userId,
+    }));
+    // Add self if not in leaderboard
+    if (userId && !entries.find(e => e.isSelf)) {
+      entries.push({ name: playerName, score: playerScore, isBot: false, isSelf: true });
+      entries.sort((a, b) => b.score - a.score);
+    }
+  } else {
+    entries = generateBots();
+    entries.push({ name: playerName, score: playerScore, isBot: true, isSelf: false });
+    entries.sort((a, b) => b.score - a.score);
+  }
+
+  entries.slice(0, 20).forEach((entry, i) => {
+    const isSelf = entry.isSelf || (!entry.isBot && !cachedLeaderboard);
+    const row = el('div', { class: 'lb-entry' + (isSelf ? ' lb-self' : '') }, [
       el('div', { class: 'lb-rank', textContent: '#' + (i + 1) }),
       el('div', { class: 'lb-name', textContent: entry.name }),
       el('div', { class: 'lb-score', textContent: formatK(entry.score) }),
@@ -2211,6 +2369,30 @@ function renderLeaderboard() {
 }
 
 // ═══ REFERRAL ═══
+async function loadReferralInfo() {
+  if (!serverConnected) return;
+  const info = await api('/referral/info');
+  if (info.error) return;
+  state.referralCount = info.referralCount || 0;
+  state.referralEarnings = info.totalEarnings || 0;
+  updateUI();
+}
+
+async function claimReferralCommission() {
+  if (!serverConnected) return;
+  const result = await api('/referral/claim-commission', { method: 'POST' });
+  if (result.error || !result.earned) return;
+  state.balance = result.newBalance || (state.balance + result.earned);
+  state.referralCount = result.referralCount || state.referralCount;
+  sfxClaim(); haptic('success');
+  showReward(result.earned, '\u2605 REFERRAL COMMISSION \u2605');
+  updateUI(); saveState();
+}
+
+document.getElementById('claimRefBtn').addEventListener('click', () => {
+  claimReferralCommission();
+});
+
 document.getElementById('inviteBtn').addEventListener('click', () => {
   if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     const userId = tg.initDataUnsafe.user.id;
@@ -2312,6 +2494,18 @@ checkDailyLogin();
 setInterval(renderQuests, 5000);
 setInterval(renderLeaderboard, 30000);
 setInterval(renderEventBanner, 60000);
+
+// Server auth (async, non-blocking)
+(async () => {
+  const ok = await authenticateWithTelegram();
+  if (ok) {
+    updateUI(); saveState();
+    await Promise.all([
+      fetchLeaderboard(),
+      loadReferralInfo(),
+    ]);
+  }
+})();
 </script>
 </body>
 </html>
