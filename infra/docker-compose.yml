@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # ═══ Redis (local dev / production cache) ═══
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+
+  # ═══ PostgreSQL (local dev only — production uses Cloud SQL) ═══
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: tapbomb
+      POSTGRES_USER: tapbomb
+      POSTGRES_PASSWORD: tapbomb_dev
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  # ═══ TAPBOMB Server ═══
+  server:
+    build:
+      context: ..
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgresql://tapbomb:tapbomb_dev@postgres:5432/tapbomb
+      - REDIS_URL=redis://redis:6379
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+      - HMAC_SECRET=${HMAC_SECRET}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-service-account.json
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+
+  # ═══ Telegram Bot ═══
+  bot:
+    build:
+      context: ..
+      dockerfile: bot/Dockerfile
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - WEBAPP_URL=${WEBAPP_URL:-https://tapbomb.io}
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  pg_data:

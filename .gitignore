@@ -1,5 +1,10 @@
 .DS_Store
 node_modules/
 .env
+!.env.example
 firebase-debug.log
 *.log
+dist/
+gcp-service-account.json
+*.pem
+*.key

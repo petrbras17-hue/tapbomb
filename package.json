@@ -1,15 +1,25 @@
 {
   "name": "tapbomb",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "private": true,
   "description": "TAPBOMB — CS2 Tap-to-Earn Game",
-  "main": "server.js",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "bot"
+  ],
   "scripts": {
-    "start": "node server.js"
+    "dev": "npm run dev --workspace=apps/server & npm run dev --workspace=apps/client",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "dev:client": "npm run dev --workspace=apps/client",
+    "dev:bot": "npm run dev --workspace=bot",
+    "build": "npm run build --workspaces",
+    "start": "node apps/server/dist/index.js",
+    "db:migrate": "npm run migrate --workspace=apps/server",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker-compose.yml down"
   },
   "engines": {
-    "node": ">=18"
-  },
-  "devDependencies": {
-    "@figma/rest-api-spec": "^0.36.0"
+    "node": ">=20"
   }
 }
