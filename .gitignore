@@ -8,3 +8,4 @@ dist/
 gcp-service-account.json
 *.pem
 *.key
+packages/shared/tsconfig.tsbuildinfo
