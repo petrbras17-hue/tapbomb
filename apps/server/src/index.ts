@@ -15,6 +15,15 @@ import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const MIME_TYPES: Record<string, string> = {
+  '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
+};
+function getMimeType(filePath: string): string {
+  return MIME_TYPES[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
+}
+
 async function start() {
   const app = Fastify({
     logger: true,
@@ -54,7 +63,7 @@ async function start() {
     const filePath = path.join(clientDist, urlPath);
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      return reply.sendFile(urlPath, clientDist);
+      return reply.type(getMimeType(urlPath)).send(fs.readFileSync(filePath));
     }
 
     // Fallback to legacy index.html
